@@ -3,12 +3,17 @@
 #include "text.h"
 
 static int get_g(char* expr, Node** root);
-static struct Node* get_n(char* expr, int* index);
 static struct Node* get_e(char* expr, int* index);
 static struct Node* get_t(char* expr, int* index);
-static struct Node* get_pow_func(char* expr, int* index);
 static struct Node* get_p(char* expr, int* index);
-static struct Node* get_f(char* expr, int* index);
+static struct Node* get_n(char* expr, int* index);
+static struct Node* get_id(char* expr, int* index);
+static struct Node* get_a(char* expr, int* index);
+static struct Node* get_if(char* expr, int* index);
+static struct Node* get_func(char* expr, int* index);
+static struct Node* get_main(char* expr, int* index);
+static struct Node* get_a(char* expr, int* index);
+static struct Node* get_if(char* expr, int* index);
 
 void skip_spaces(char* expr, int* index)
 {
@@ -65,6 +70,58 @@ static int get_g(char* expr, Node** root)
     return 0;
 }
 
+static struct Node* get_e(char* expr, int* index)
+{
+    struct Node* answer = get_t(expr, index);
+    struct Node* cur_node = answer;
+
+    while(expr[*index] == '+' || expr[*index] == '-')
+    {
+        int op = expr[*index];
+        (*index)++;
+        cur_node = create_node(op, op, answer);
+        answer = cur_node;
+        answer->right = get_t(expr, index);
+    }
+    return answer;
+}
+
+static struct Node* get_t(char* expr, int* index)
+{
+    struct Node* answer = get_p(expr, index);
+    struct Node* cur_node = answer;
+
+    while(expr[*index] == '*' || expr[*index] == '/')
+    {
+        int op = expr[*index];
+        (*index)++;
+        cur_node = create_node(op, op, answer);
+        answer = cur_node;
+        answer->right = get_p(expr, index);
+    }
+    return answer;
+}
+
+static struct Node* get_p(char* expr, int* index)
+{
+    if(expr[*index] == '(')
+    {
+        (*index)++;
+        struct Node* answer = get_e(expr, index);
+
+        if(expr[*index] != ')')
+            printf("Syntax error in pos.%d. Symbol is %c but expected )\n", *index, expr[*index]);/////////////////////
+
+        (*index)++;
+        return answer;
+    }
+    //пока без Id'('E')'
+    if((expr[*index] >= 'a' && expr[*index] <= 'z') || (expr[*index] >= 'A' && expr[*index] <= 'Z') || expr[*index] == '_')
+        return get_id(expr, index);
+
+    return get_n(expr, index);
+}
+
 static struct Node* get_n(char* expr, int* index)
 {
     double value = 0;
@@ -74,10 +131,10 @@ static struct Node* get_n(char* expr, int* index)
 
     if((expr[*index] > '9' || expr[*index] < '0'))
     {
-        /*printf("Syntax error in pos.%d. Symbol is %c but expected number\n", *index, expr[*index]);
-        return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_N);*/
-        (*index)++;
-        return create_node(VAR, expr[(*index) - 1]);
+        printf("Syntax error in pos.%d. Symbol is %c but expected number\n", *index, expr[*index]);
+        return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_N);
+        /*(*index)++;
+        return create_node(VAR, expr[(*index) - 1]);*/
     }
 
     while(expr[*index] <= '9' && expr[*index] >= '0')
@@ -109,96 +166,33 @@ static struct Node* get_n(char* expr, int* index)
         return create_node(NUMBER, -value);
 }
 
-static struct Node* get_e(char* expr, int* index)
+static struct Node* get_id(char* expr, int* index)
 {
-    struct Node* answer = get_t(expr, index);
-    struct Node* cur_node = answer;
-
-    while(expr[*index] == '+' || expr[*index] == '-')
+    if(!((expr[*index] >= 'a' && expr[*index] <= 'z') || (expr[*index] >= 'A' && expr[*index] <= 'Z') || expr[*index] == '_'))
     {
-        int op = expr[*index];
-        (*index)++;
-        cur_node = create_node(op, op, answer);
-        answer = cur_node;
-        answer->right = get_t(expr, index);
-    }
-    return answer;
-}
-
-static struct Node* get_t(char* expr, int* index)
-{
-    struct Node* answer = get_pow_func(expr, index);
-    struct Node* cur_node = answer;
-
-    while(expr[*index] == '*' || expr[*index] == '/')
-    {
-        int op = expr[*index];
-        (*index)++;
-        cur_node = create_node(op, op, answer);
-        answer = cur_node;
-        answer->right = get_pow_func(expr, index);
-    }
-    return answer;
-}
-
-static struct Node* get_pow_func(char* expr, int* index)
-{
-    struct Node* answer = get_p(expr, index);
-    struct Node* cur_node = answer;
-
-    while(expr[*index] == '^')
-    {
-        int op = expr[*index];
-        (*index)++;
-        cur_node = create_node(op, op, answer);
-        answer = cur_node;
-        answer->right = get_p(expr, index);
-    }
-    return answer;
-}
-
-static struct Node* get_p(char* expr, int* index)
-{
-    if(expr[*index] == '(')
-    {
-        (*index)++;
-        struct Node* answer = get_e(expr, index);
-
-        if(expr[*index] != ')')
-            printf("Syntax error in pos.%d. Symbol is %c but expected )\n", *index, expr[*index]);/////////////////////
-
-        (*index)++;
-        return answer;
+        printf("Syntax error in pos.%d. Symbol is %c but expected number\n", *index, expr[*index]);
+        return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_ID);
     }
 
-    return get_f(expr, index);
+    char var[MAX_VAR_LENGTH] = "";
+    for(int i = 0; i < 20; i++)
+    {
+        if(!((expr[*index] >= 'a' && expr[*index] <= 'z') || (expr[*index] >= 'A' && expr[*index] <= 'Z') || expr[*index] == '_'))
+            break;
+
+        var[i] = expr[*index];
+        (*index)++;
+    }
+
+    return create_node(VAR, var);
 }
 
-static struct Node* get_f(char* expr, int* index)
+static struct Node* get_func(char* expr, int* index)
 {
-    struct Node* answer = nullptr;
-    struct Node* func_argument = nullptr;
+    return create_node(FUNC, answer);
+}
 
-    char func[MAX_FUNC_LENGTH] = {};
-    sscanf(expr + (*index), "%[^(]", func);
-    /*while(expr[*index] != '(')  (*index)++;
-    (*index)++;*/
-    //printf("func = %s\n", func);
-
-    #define DEFFUNC(SYMB, FUNC, PUSH, DIFF)         \
-        if(!stricmp(func, #FUNC))                   \
-        {                                           \
-            while(expr[*index] != '(')  (*index)++; \
-            func_argument = get_p(expr, index);     \
-            answer = create_node(SYMB, SYMB);       \
-            answer->left = func_argument;           \
-            return answer;                          \
-        }                                           \
-
-    #include "def_funcs.h"
-
-    #undef DEFFUNC
-
-    return get_n(expr, index);
-
+static struct Node* get_main(char* expr, int* index)
+{
+    return create_node(MAIN, answer);
 }

@@ -5,6 +5,8 @@
 #include <assert.h>
 #include "tree_soft.h"
 
+#define MAX_VAR_LENGTH 20
+
 int read_expession_rec_descent(FILE* source_file, Node** root);
 void skip_spaces(char* expr , int* index);
 
@@ -16,7 +18,8 @@ enum Errors{
     SYNTAX_ERROR_IN_GET_N = 5,
     SYNTAX_ERROR_IN_GET_E = 6,
     SYNTAX_ERROR_IN_GET_T = 7,
-    SYNTAX_ERROR_IN_GET_F = 8,
+    SYNTAX_ERROR_IN_GET_ID = 8,
+
     SYNTAX_ERROR = 257,
 };
 
