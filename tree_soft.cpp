@@ -6,6 +6,8 @@
 #include "log.h"
 #include "dotter.h"
 
+#define POISON 3472394
+
 static void node_print(struct Node* node);
 
 struct Node* create_node(int type, double value, struct Node* left, struct Node* right)
@@ -76,7 +78,7 @@ static void node_print(struct Node* node)
         graph_add_dot(node, node->value, node->type, node->left, node->right, "#FFD0D0");
     else if(node->type == VAR)
         graph_add_dot(node, node->value, node->type, node->left, node->right, "#D0D0FF");
-    else if(is_func(node->type))
+    else if(is_op_or_func_or_logic_or_keyword(node->type))
         graph_add_dot(node, node->value, node->type, node->left, node->right, "#D0FFD0");
     else
         graph_add_dot(node, node->value, node->type, node->left, node->right, "#FF0000");
@@ -275,3 +277,99 @@ void merge_nodes(struct Node* in_node, struct Node* out_node)
 
     free(out_node);
 }
+
+bool is_op_or_func_or_logic_or_keyword(int type)
+{
+    #define DEFOP(FUNC, CODE, NAME)             \
+        if(CODE == type)                        \
+            return true;                        \
+
+    #define DEFFUNC(FUNC, CODE, NAME)           \
+        if(CODE == type)                        \
+            return true;                        \
+
+    #define DEFLOGIC(FUNC, CODE, NAME)          \
+        if(CODE == type)                        \
+            return true;                        \
+
+    #define DEFKEYWORD(FUNC, CODE, NAME)        \
+        if(CODE == type)                        \
+            return true;                        \
+
+    #include "funcs.h"
+    #undef DEFOP
+    #undef DEFFUNC
+    #undef DEFLOGIC
+    #undef DEFKEYWORD
+
+    return false;
+}
+
+double eval(struct Node* node)
+{
+    if(!is_number_tree(node))
+        return POISON;
+
+    if(node->type == NUMBER)
+        return node->value;
+
+    switch(node->type)
+    {
+        case ADD:
+            return eval(node->left) + eval(node->right);
+        case SUB:
+            return eval(node->left) - eval(node->right);
+        case MUL:
+            return eval(node->left) * eval(node->right);
+        case DIV:
+        {
+            double right_val = eval(node->right);
+            if(equal_double(right_val, 0))
+            {
+                printf("division by zero!\n");
+                return POISON;
+            }
+            return eval(node->left) / eval(node->right);
+        }
+        case POW:
+            return pow(eval(node->left), eval(node->right));
+        case LN:
+        {
+            double val = eval(node->left);
+            if(equal_double(val, 0))
+            {
+                printf("ln(0) = inf\n");
+                return POISON;
+            }
+            return log(val);
+        }
+        case SIN:
+            return sin(eval(node->left));
+        case COS:
+            return cos(eval(node->left));
+        case TAN:
+        {
+            double val = eval(node->left);
+            if(equal_double(cos(val), 0))
+            {
+                printf("tan(pi/2 + 2 pi k = inf\n)");
+                return POISON;
+            }
+            return tan(val);
+        }
+        case COT:
+        {
+            double val = eval(node->left);
+            if(equal_double(sin(val), 0))
+            {
+                printf("cot2 pi k = inf\n");
+                return POISON;
+            }
+            return 1/tan(val);
+        }
+        default:
+            return POISON;
+    }
+    return POISON;
+}
+

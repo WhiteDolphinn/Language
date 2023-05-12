@@ -15,6 +15,8 @@ static char* get_dot_file_name();
 static void close_log_file_dot();
 static void print_graph();
 
+void func_to_str(int type, char* func);
+
 void graph_start()
 {
     static bool is_started = false;
@@ -104,15 +106,39 @@ void close_log_file_dot()
 
 void func_to_str(int type, char* func)
 {
-    #define DEFFUNC(SYMBOL, FUNC, PUSH, DIFF)   \
-       if(SYMBOL == type)                       \
+    #define DEFOP(FUNC, CODE, NAME)             \
+       if(CODE == type)                         \
        {                                        \
-            strcpy(func, #FUNC);                \
+            strcpy(func, NAME);                 \
+            return;                             \
+       }                                        \
+
+    #define DEFFUNC(FUNC, CODE, NAME)           \
+       if(CODE == type)                         \
+       {                                        \
+            strcpy(func, NAME);                 \
+            return;                             \
+       }                                        \
+
+    #define DEFLOGIC(FUNC, CODE, NAME)          \
+       if(CODE == type)                         \
+       {                                        \
+            strcpy(func, NAME);                 \
+            return;                             \
+       }                                        \
+
+    #define DEFKEYWORD(FUNC, CODE, NAME)        \
+       if(CODE == type)                         \
+       {                                        \
+            strcpy(func, NAME);                 \
             return;                             \
        }                                        \
 
     #include "funcs.h"
+    #undef DEFOP
     #undef DEFFUNC
+    #undef DEFLOGIC
+    #undef DEFKEYWORD
 
     strcpy(func, "unknown");
     return;

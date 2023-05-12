@@ -20,24 +20,12 @@ enum Errors{
     SYNTAX_ERROR_IN_GET_T = 7,
     SYNTAX_ERROR_IN_GET_ID = 8,
     SYNTAX_ERROR_IN_GET_IF = 9,
+    SYNTAX_ERROR_IN_GET_COMP = 10,
+    SYNTAX_ERROR_IN_GET_MAIN = 11,
+    SYNTAX_ERROR_IN_GET_SCANF = 12,
+    SYNTAX_ERROR_IN_GET_PRINTF = 13,
 
     SYNTAX_ERROR = 257,
-};
-
-#define DEFFUNC(SYMB, FUNC, PUSH, DIFF)\
-    FUNC = SYMB,
-
-enum Type{
-    /*NUMBER = 0,
-    ADD = '+',
-    SUB = '-',
-    MUL = '*',
-    DIV = '/',
-    POW = '^',
-    VAR = 'x',
-    LN = 'l'*/
-    #include "funcs.h"
-    #undef DEFFUNC
 };
 
 #endif
