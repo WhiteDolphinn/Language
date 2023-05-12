@@ -1,5 +1,5 @@
 #include "tree_soft.h"
-#include "diff.h"
+//#include "diff.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>

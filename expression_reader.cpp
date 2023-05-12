@@ -3,6 +3,7 @@
 #include "text.h"
 
 static int get_g(char* expr, Node** root);
+static struct Node* get_l(char* expr, int* index);
 static struct Node* get_e(char* expr, int* index);
 static struct Node* get_t(char* expr, int* index);
 static struct Node* get_p(char* expr, int* index);
@@ -10,10 +11,11 @@ static struct Node* get_n(char* expr, int* index);
 static struct Node* get_id(char* expr, int* index);
 static struct Node* get_a(char* expr, int* index);
 static struct Node* get_if(char* expr, int* index);
+static struct Node* get_op(char* expr, int* index);
 static struct Node* get_func(char* expr, int* index);
 static struct Node* get_main(char* expr, int* index);
-static struct Node* get_a(char* expr, int* index);
-static struct Node* get_if(char* expr, int* index);
+
+static bool is_this_word(char* expr, int* index, const char* word);
 
 void skip_spaces(char* expr, int* index)
 {
@@ -68,6 +70,28 @@ static int get_g(char* expr, Node** root)
         return SYNTAX_ERROR_IN_GET_G;
     }
     return 0;
+}
+
+static struct Node* get_l(char* expr, int* index)
+{
+    struct Node* answer = get_e(expr, index);
+    struct Node* cur_node = answer;
+
+    int op = 0;
+    if(expr[*index] == '>')                                 op = 12;
+    if(expr[*index] == '>' && expr[(*index) + 1] == '=')    op = 11;
+    if(expr[*index] == '=' && expr[(*index) + 1] == '=')    op = 13;
+    if(expr[*index] == '!' && expr[(*index) + 1] == '=')    op = 14;
+
+    while(is_this_word(expr, index, ">=") || is_this_word(expr, index, ">") || is_this_word(expr, index, "!=") || is_this_word(expr, index, "=="))
+    {
+        //int op = expr[*index];
+        //(*index)++;
+        cur_node = create_node(op, op, answer);
+        answer = cur_node;
+        answer->right = get_e(expr, index);
+    }
+    return answer;
 }
 
 static struct Node* get_e(char* expr, int* index)
@@ -187,6 +211,49 @@ static struct Node* get_id(char* expr, int* index)
     return create_node(VAR, var);
 }
 
+static struct Node* get_if(char* expr, int* index)
+{
+    //уже проверено, что будет if
+    //(*index) += 2;
+    if(expr[*index] != '(')
+    {
+        printf("Syntax error in pos.%d. Symbol is %c but expected (", *index, expr[*index]);
+        return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_IF);
+    }
+    (*index)++;
+
+    struct Node* L = get_l(expr, index);
+
+    if(expr[*index] != ')')
+    {
+        printf("Syntax error in pos.%d. Symbol is %c but expected )", *index, expr[*index]);
+        return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_IF);
+    }
+    (*index)++;
+
+    struct Node* comp = get_comp(expr, index);
+
+    return create_node(IF, IF, L, comp);
+}
+
+static struct Node* get_op(char* expr, int* index)
+{
+    /*if(expr[*index] == 'i' && expr[*(index+1)] == 'f')
+        get_if(expr, index);*/
+    if(is_this_word(expr, index, "if"))
+        return get_if(expr, index);
+
+   /* if(expr[*index] == 'f' && expr[*(index+1)] == 'u' && expr[*(index+2)] == 'n' && expr[*(index+3)] == 'c')
+        get_func(expr, index);*/
+    if(is_this_word(expr, index, "func"))
+        return get_func(expr, index);
+
+    if(expr[*index] == '[')
+        return get_comp(expr, index);
+
+    return get_a(expr, index);
+}
+
 static struct Node* get_func(char* expr, int* index)
 {
     return create_node(FUNC, answer);
@@ -195,4 +262,15 @@ static struct Node* get_func(char* expr, int* index)
 static struct Node* get_main(char* expr, int* index)
 {
     return create_node(MAIN, answer);
+}
+
+static bool is_this_word(char* expr, int* index, const char* word)
+{
+    int i = 0;
+    for(; word[i] != '\0'; i++)
+        if(word[i] != expr[(*index) + i])
+            return false;
+
+    (*index) += i;
+    return true;
 }

@@ -19,9 +19,13 @@ enum Errors{
     SYNTAX_ERROR_IN_GET_E = 6,
     SYNTAX_ERROR_IN_GET_T = 7,
     SYNTAX_ERROR_IN_GET_ID = 8,
+    SYNTAX_ERROR_IN_GET_IF = 9,
 
     SYNTAX_ERROR = 257,
 };
+
+#define DEFFUNC(SYMB, FUNC, PUSH, DIFF)\
+    FUNC = SYMB,
 
 enum Type{
     /*NUMBER = 0,
@@ -32,7 +36,7 @@ enum Type{
     POW = '^',
     VAR = 'x',
     LN = 'l'*/
-    #include "def_funcs.h"
+    #include "funcs.h"
     #undef DEFFUNC
 };
 

@@ -2,7 +2,7 @@
 #define DOTTER_H
 #include <time.h>
 #include <string.h>
-#include "read_tree.h"
+#include "expression_reader.h"
 #include "log.h"
 
 
@@ -100,6 +100,22 @@ void close_log_file_dot()
 {
     FILE* fdot = get_log_file(".dot");
     fclose(fdot);
+}
+
+void func_to_str(int type, char* func)
+{
+    #define DEFFUNC(SYMBOL, FUNC, PUSH, DIFF)   \
+       if(SYMBOL == type)                       \
+       {                                        \
+            strcpy(func, #FUNC);                \
+            return;                             \
+       }                                        \
+
+    #include "funcs.h"
+    #undef DEFFUNC
+
+    strcpy(func, "unknown");
+    return;
 }
 
 #endif
