@@ -296,11 +296,16 @@ bool is_op_or_func_or_logic_or_keyword(int type)
         if(CODE == type)                        \
             return true;                        \
 
+    #define DEFBRACK(FUNC, CODE, NAME)          \
+        if(CODE == type)                        \
+            return true;                        \
+
     #include "funcs.h"
     #undef DEFOP
     #undef DEFFUNC
     #undef DEFLOGIC
     #undef DEFKEYWORD
+    #undef DEFBRACK
 
     return false;
 }

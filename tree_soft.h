@@ -18,6 +18,8 @@ struct Node{
     FUNC = CODE,
 #define DEFKEYWORD(FUNC, CODE, NAME)\
     FUNC = CODE,
+#define DEFBRACK(FUNC, CODE, NAME)\
+    FUNC = CODE,
 
 enum Type{
     /*NUMBER = 0,
@@ -33,6 +35,7 @@ enum Type{
     #undef DEFFUNC
     #undef DEFLOGIC
     #undef DEFKEYWORD
+    #undef DEFBRACK
 };
 
 struct Node* create_node(int type, double value, struct Node* left = nullptr, struct Node* right = nullptr);

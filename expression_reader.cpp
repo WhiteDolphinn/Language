@@ -1,6 +1,7 @@
 #include <ctype.h>
 #include "expression_reader.h"
 #include "text.h"
+#include "lexer.h"
 
 static int get_g(char* expr, Node** root);
 static struct Node* get_l(char* expr, int* index);
@@ -17,8 +18,6 @@ static struct Node* get_func(char* expr, int* index);
 static struct Node* get_main(char* expr, int* index);
 static struct Node* get_scanf(char* expr, int* index);
 static struct Node* get_printf(char* expr, int* index);
-
-static bool is_this_word(char* expr, int* index, const char* word);
 
 void skip_spaces(char* expr, int* index)
 {
@@ -211,7 +210,12 @@ static struct Node* get_id(char* expr, int* index)
         (*index)++;
     }
 
-    return create_node(VAR, var);
+    return create_node(VAR, VAR);///////////////////////////
+}
+
+static struct Node* get_a(char* expr, int* index)
+{
+    return create_node(17, 17);
 }
 
 static struct Node* get_if(char* expr, int* index)
@@ -289,18 +293,18 @@ static struct Node* get_comp(char* expr, int* index)
 static struct Node* get_func(char* expr, int* index)
 {
     struct Node* name = get_id(expr, index);
-    struct Node* args = create_node(ARGS, ARGS, );
-    struct Node* exp = ;
-    struct Node* info = create_node(INFO, INFO, args, expr);
+    struct Node* args = create_node(ARGS, ARGS);
+   // struct Node* exp = ;
+    struct Node* info = create_node(INFO, INFO, args);
     return create_node(DEC, DEC, name, info);
 }
 
 static struct Node* get_main(char* expr, int* index)
 {
-    if(is_this_word(expr, index, "main()"))
+    /*if(is_this_word(expr, index, "main()"))
         return create_node(MAIN, MAIN, nullptr, answer);
 
-    printf("Syntax error in pos.%d. Expected main()", *index);
+    printf("Syntax error in pos.%d. Expected main()", *index);*/
     return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_MAIN);
 }
 
@@ -343,10 +347,10 @@ static struct Node* get_printf(char* expr, int* index)
     }
     (*index)++;
 
-    return create_node(PRINF, PRINTF, id);
+    return create_node(PRINTF, PRINTF, id);
 }
 
-static bool is_this_word(char* expr, int* index, const char* word)
+bool is_this_word(char* expr, int* index, const char* word)
 {
     int i = 0;
     for(; word[i] != '\0'; i++)

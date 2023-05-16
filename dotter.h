@@ -134,11 +134,19 @@ void func_to_str(int type, char* func)
             return;                             \
        }                                        \
 
+    #define DEFBRACK(FUNC, CODE, NAME)          \
+        if(CODE == type)                        \
+        {                                       \
+            strcpy(func, NAME);                 \
+            return;                             \
+        }                                       \
+
     #include "funcs.h"
     #undef DEFOP
     #undef DEFFUNC
     #undef DEFLOGIC
     #undef DEFKEYWORD
+    #undef DEFBRACK
 
     strcpy(func, "unknown");
     return;

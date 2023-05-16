@@ -6,9 +6,11 @@
 #include "tree_soft.h"
 
 #define MAX_VAR_LENGTH 20
+#define MAX_NUM_OF_VARS 5
 
 int read_expession_rec_descent(FILE* source_file, Node** root);
 void skip_spaces(char* expr , int* index);
+bool is_this_word(char* expr, int* index, const char* word);
 
 enum Errors{
     SYNTAX_ERROR_IN_GET_G = 1,
