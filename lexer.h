@@ -1,12 +1,19 @@
 #ifndef LEXER_H
 #define LEXER_H
 
+#define MAX_NUM_OF_TOKENS 1024
+
+union type_val{
+    int int_val;
+    double double_val;
+};
+
 struct token{
-    int value;
+    type_val value;
     int type;
 };
 
-enum token_type{
+enum token_types{
     OP = 1,
     FUN = 2,
     LOGIC = 3,
@@ -19,6 +26,6 @@ enum token_type{
     FUNC = 10,
 };
 
-void tokenizator(struct token* tokens, char* source_str, char** var_table);
+bool tokenizator(struct token* tokens, char* source_str, char** var_table);
 
 #endif

@@ -3,16 +3,15 @@
 #include <ctype.h>
 #include "expression_reader.h"
 
-#define MAX_NUM_OF_TOKENS 1024
 #define POISON 394342
 
-void tokenizator(struct token* tokens, char* source_str, char** var_table)
+bool tokenizator(struct token* tokens, char* source_str, char** var_table)
 {
    // struct token tokens[MAX_NUM_OF_TOKENS] = {};
     for(int i = 0; i < MAX_NUM_OF_TOKENS; i++)
     {
         tokens->type = POISON;
-        tokens->value = POISON;
+        tokens->value.int_val = POISON;
     }
 
     int current_var_num = 0;
@@ -22,14 +21,18 @@ void tokenizator(struct token* tokens, char* source_str, char** var_table)
     while(source_str[index] != '\0')
     {
         skip_spaces(source_str, &index);
+
         if(source_str[index] == '\0')
             break;
+        if(current_token_num == MAX_NUM_OF_TOKENS)
+            break;
+
         //printf("source_str[index] = %c\n", source_str[index]);
         #define DEFOP(FUNC, CODE, NAME)\
             if(is_this_word(source_str, &index, NAME))\
             {\
                 tokens[current_token_num].type = OP;\
-                tokens[current_token_num].value = CODE;\
+                tokens[current_token_num].value.int_val = CODE;\
                 current_token_num++;\
                 continue;\
             }\
@@ -38,7 +41,7 @@ void tokenizator(struct token* tokens, char* source_str, char** var_table)
             if(is_this_word(source_str, &index, NAME))\
             {\
                 tokens[current_token_num].type = FUN;\
-                tokens[current_token_num].value = CODE;\
+                tokens[current_token_num].value.int_val = CODE;\
                 current_token_num++;\
                 continue;\
             }\
@@ -47,7 +50,7 @@ void tokenizator(struct token* tokens, char* source_str, char** var_table)
             if(is_this_word(source_str, &index, NAME))\
             {\
                 tokens[current_token_num].type = LOGIC;\
-                tokens[current_token_num].value = CODE;\
+                tokens[current_token_num].value.int_val = CODE;\
                 current_token_num++;\
                 continue;\
             }\
@@ -56,7 +59,7 @@ void tokenizator(struct token* tokens, char* source_str, char** var_table)
             if(is_this_word(source_str, &index, NAME))\
             {\
                 tokens[current_token_num].type = KEYWORD;\
-                tokens[current_token_num].value = CODE;\
+                tokens[current_token_num].value.int_val = CODE;\
                 current_token_num++;\
                 continue;\
             }\
@@ -65,7 +68,7 @@ void tokenizator(struct token* tokens, char* source_str, char** var_table)
             if(is_this_word(source_str, &index, NAME))\
             {\
                 tokens[current_token_num].type = BRACK;\
-                tokens[current_token_num].value = CODE;\
+                tokens[current_token_num].value.int_val = CODE;\
                 current_token_num++;\
                 continue;\
             }\
@@ -79,7 +82,7 @@ void tokenizator(struct token* tokens, char* source_str, char** var_table)
 
         printf("Symbol is %c (%d).\n", source_str[index], source_str[index]);
 
-        if(isalpha(source_str[index]))
+        if(isalpha(source_str[index]) || source_str[index] == '-')
         {
             char var_name[MAX_VAR_LENGTH] = {};
             /*sscanf(source_str + index, "%s ", var_name);
@@ -96,7 +99,7 @@ void tokenizator(struct token* tokens, char* source_str, char** var_table)
                 if(!strcmp((char*)(var_table) + MAX_VAR_LENGTH*i, var_name))
                 {
                     tokens[current_token_num].type = VARIABLE;
-                    tokens[current_token_num].value = i;
+                    tokens[current_token_num].value.int_val = i;
                     current_token_num++;
                     is_created_var = true;
                     break;
@@ -110,7 +113,7 @@ void tokenizator(struct token* tokens, char* source_str, char** var_table)
                 *((char*)(var_table) + MAX_VAR_LENGTH*current_var_num + i) = var_name[i];
 
             tokens[current_token_num].type = VARIABLE;
-            tokens[current_token_num].value = current_var_num;
+            tokens[current_token_num].value.int_val = current_var_num;
             current_token_num++;
             current_var_num++;
             continue;
@@ -124,13 +127,13 @@ void tokenizator(struct token* tokens, char* source_str, char** var_table)
                 index++;
 
             tokens[current_token_num].type = NUMB;
-            tokens[current_token_num].value = (int)num;
+            tokens[current_token_num].value.double_val = num;
             current_token_num++;
             continue;
         }
 
         printf("Error in lexer unknown symbol %c (%d). index = %d\n", source_str[index], source_str[index], index);
-        break;
+        return false;
 
         /*for(int i = 0; !isspace(source_str[index]); i++)
         {
@@ -141,5 +144,13 @@ void tokenizator(struct token* tokens, char* source_str, char** var_table)
         current_var_num++;*/
     }
 
+
+    if(current_token_num == MAX_NUM_OF_TOKENS)
+    {
+        printf("tokens array overflow\n");
+        return false;
+    }
+
+    return true;
     //return tokens;
 }

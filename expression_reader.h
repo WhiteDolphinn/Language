@@ -8,7 +8,9 @@
 #define MAX_VAR_LENGTH 20
 #define MAX_NUM_OF_VARS 5
 
-int read_expession_rec_descent(FILE* source_file, Node** root);
+//int read_expession_rec_descent(FILE* source_file, Node** root);
+int convert_tokens_to_ast(struct token* tokens, Node** root);
+
 void skip_spaces(char* expr , int* index);
 bool is_this_word(char* expr, int* index, const char* word);
 
@@ -26,6 +28,11 @@ enum Errors{
     SYNTAX_ERROR_IN_GET_MAIN = 11,
     SYNTAX_ERROR_IN_GET_SCANF = 12,
     SYNTAX_ERROR_IN_GET_PRINTF = 13,
+    ERROR_TOKENS_ARR = 14,
+    SYNTAX_ERROR_IN_GET_OP = 15,
+    SYNTAX_ERROR_IN_GET_P = 16,
+    SYNTAX_ERROR_IN_GET_A = 17,
+    SYNTAX_ERROR_IN_GET_FUNC = 18,
 
     SYNTAX_ERROR = 257,
 };

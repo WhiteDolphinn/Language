@@ -3,21 +3,27 @@
 #include "text.h"
 #include "lexer.h"
 
-static int get_g(char* expr, Node** root);
-static struct Node* get_l(char* expr, int* index);
-static struct Node* get_e(char* expr, int* index);
-static struct Node* get_t(char* expr, int* index);
-static struct Node* get_p(char* expr, int* index);
-static struct Node* get_n(char* expr, int* index);
-static struct Node* get_id(char* expr, int* index);
-static struct Node* get_a(char* expr, int* index);
-static struct Node* get_if(char* expr, int* index);
-static struct Node* get_op(char* expr, int* index);
-static struct Node* get_comp(char* expr, int* index);
-static struct Node* get_func(char* expr, int* index);
-static struct Node* get_main(char* expr, int* index);
-static struct Node* get_scanf(char* expr, int* index);
-static struct Node* get_printf(char* expr, int* index);
+#define TOKEN_INT(TYPE, VAL)                                        \
+(tokens[*index].type == TYPE && tokens[*index].value.int_val == VAL)\
+
+#define TOKEN_DOUBLE(TYPE, VAL)                                        \
+(tokens[*index].type == TYPE && tokens[*index].value.double_val == VAL)\
+
+static int get_g(struct token* tokens, Node** root);
+static struct Node* get_l(struct token* tokens, int* index);
+static struct Node* get_e(struct token* tokens, int* index);
+static struct Node* get_t(struct token* tokens, int* index);
+static struct Node* get_p(struct token* tokens, int* index);
+static struct Node* get_n(struct token* tokens, int* index);
+static struct Node* get_id(struct token* tokens, int* index);
+static struct Node* get_a(struct token* tokens, int* index);
+static struct Node* get_if(struct token* tokens, int* index);
+static struct Node* get_op(struct token* tokens, int* index);
+static struct Node* get_comp(struct token* tokens, int* index);
+static struct Node* get_func(struct token* tokens, int* index);
+static struct Node* get_main(struct token* tokens, int* index);
+static struct Node* get_scanf(struct token* tokens, int* index);
+static struct Node* get_printf(struct token* tokens, int* index);
 
 void skip_spaces(char* expr, int* index)
 {
@@ -27,7 +33,7 @@ void skip_spaces(char* expr, int* index)
     return;
 }
 
-int read_expession_rec_descent(FILE* source_file, Node** root)
+/*int read_expession_rec_descent(FILE* source_file, Node** root)
 {
     char expession_with_spaces[MAX_STR_LENGTH] = {};
     char expession_without_spaces[MAX_STR_LENGTH] = {};
@@ -55,234 +61,300 @@ int read_expession_rec_descent(FILE* source_file, Node** root)
             expession_without_spaces[cur_exp_pos++] = expession_with_spaces[i];
 
     return get_g(expession_without_spaces, root);
+}*/
+
+int convert_tokens_to_ast(struct token* tokens, Node** root)
+{
+    if(tokens == nullptr)
+    {
+        printf("tokens == nullptr\n");
+        return ERROR_TOKENS_ARR;
+    }
+    if(root == nullptr)
+    {
+        printf("root == nullptr\n");
+        return ERROR_ROOT_POINTER;
+    }
+
+    return get_g(tokens, root);
 }
 
 
-static int get_g(char* expr, Node** root)
+static int get_g(struct token* tokens, Node** root)
 {
     int index = 0;
-    *root  = get_main (expr, &index);
+    *root = get_main(tokens, &index);
 
     if((*root)->type == SYNTAX_ERROR)
         return (int)(*root)->value;
 
-    if(expr[index] != '$')
+    if(tokens[index].type != KEYWORD || tokens[index].value.int_val != END)
     {
-        printf("Syntax error in pos.%d. Symbol is %c but expected $\n", index, expr[index]);
+        printf("Syntax error in pos.%d. Symbol is %c but expected $\n", index, tokens[index].value.int_val);
         return SYNTAX_ERROR_IN_GET_G;
     }
     return 0;
 }
 
-static struct Node* get_l(char* expr, int* index)
+static struct Node* get_l(struct token* tokens, int* index)
 {
-    struct Node* answer = get_e(expr, index);
+    struct Node* answer = get_e(tokens, index);
     struct Node* cur_node = answer;
 
     int op = 0;
-    if(expr[*index] == '>')                                 op = 11;
-    if(expr[*index] == '>' && expr[(*index) + 1] == '=')    op = 12;
-    if(expr[*index] == '=' && expr[(*index) + 1] == '=')    op = 13;
-    if(expr[*index] == '!' && expr[(*index) + 1] == '=')    op = 14;
+    if(TOKEN_INT(OP, MOR))  op = MOR;
+    if(TOKEN_INT(OP, MOE))  op = MOE;
+    if(TOKEN_INT(OP, EQU))  op = EQU;
+    if(TOKEN_INT(OP, NEQ))    op = NEQ;
 
-    while(is_this_word(expr, index, ">=") || is_this_word(expr, index, ">") || is_this_word(expr, index, "!=") || is_this_word(expr, index, "=="))
+    (*index)++;
+
+    if(op != 0)
     {
         //int op = expr[*index];
         //(*index)++;
-        cur_node = create_node(op, op, answer);
+        cur_node = create_node(OP, op, answer);
         answer = cur_node;
-        answer->right = get_e(expr, index);
+        answer->right = get_e(tokens, index);
     }
+
     return answer;
 }
 
-static struct Node* get_e(char* expr, int* index)
+static struct Node* get_e(struct token* tokens, int* index)
 {
-    struct Node* answer = get_t(expr, index);
+    struct Node* answer = get_t(tokens, index);
     struct Node* cur_node = answer;
 
-    while(expr[*index] == '+' || expr[*index] == '-')
+    while(TOKEN_INT(OP, ADD) || TOKEN_INT(OP, SUB))
     {
-        int op = expr[*index];
+        int op = tokens[*index].value.int_val;
         (*index)++;
-        cur_node = create_node(op, op, answer);
+        cur_node = create_node(OP, op, answer);
         answer = cur_node;
-        answer->right = get_t(expr, index);
+        answer->right = get_t(tokens, index);
     }
     return answer;
 }
 
-static struct Node* get_t(char* expr, int* index)
+static struct Node* get_t(struct token* tokens, int* index)
 {
-    struct Node* answer = get_p(expr, index);
+    struct Node* answer = get_p(tokens, index);
     struct Node* cur_node = answer;
 
-    while(expr[*index] == '*' || expr[*index] == '/')
+    while(TOKEN_INT(OP, MUL) || TOKEN_INT(OP, DIV))
     {
-        int op = expr[*index];
+        int op = tokens[*index].value.int_val;
         (*index)++;
-        cur_node = create_node(op, op, answer);
+        cur_node = create_node(OP, op, answer);
         answer = cur_node;
-        answer->right = get_p(expr, index);
+        answer->right = get_p(tokens, index);
     }
     return answer;
 }
 
-static struct Node* get_p(char* expr, int* index)
+static struct Node* get_p(struct token* tokens, int* index)
 {
-    if(expr[*index] == '(')
+    if(TOKEN_INT(BRACK, OCB))
     {
         (*index)++;
-        struct Node* answer = get_e(expr, index);
+        struct Node* answer = get_e(tokens, index);
 
-        if(expr[*index] != ')')
-            printf("Syntax error in pos.%d. Symbol is %c but expected )\n", *index, expr[*index]);/////////////////////
+        if(!TOKEN_INT(BRACK, CCB))
+        {
+            printf("Syntax error in pos.%d. Expected )\n", *index);
+            return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_P, answer);
+        }
 
         (*index)++;
         return answer;
     }
+
     //пока без Id'('E')'
-    if((expr[*index] >= 'a' && expr[*index] <= 'z') || (expr[*index] >= 'A' && expr[*index] <= 'Z') || expr[*index] == '_')
-        return get_id(expr, index);
 
-    return get_n(expr, index);
-}
-
-static struct Node* get_n(char* expr, int* index)
-{
-    double value = 0;
-
-    bool is_neg = expr[*index] == '-';
-    if(is_neg)  (*index)++;
-
-    if((expr[*index] > '9' || expr[*index] < '0'))
+    if(tokens[*index].type == VARIABLE || tokens[*index].type == FUN)
     {
-        printf("Syntax error in pos.%d. Symbol is %c but expected number\n", *index, expr[*index]);
-        return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_N);
-        /*(*index)++;
-        return create_node(VAR, expr[(*index) - 1]);*/
-    }
-
-    while(expr[*index] <= '9' && expr[*index] >= '0')
-    {
-        double value2 = expr[*index] - '0';
-        (*index)++;
-        value = 10 * value + value2;
-    }
-
-    if(expr[*index] == '.' || expr[*index] == ',')
-    {
-        (*index)++;
-        double double_part = 0;
-        double ten_pow = 10;
-
-        while(expr[*index] <= '9' && expr[*index] >= '0')
+        if(tokens[(*index)+1].type == BRACK && tokens[(*index)+1].value.int_val)
         {
-            double_part += (expr[*index] - '0') / ten_pow;
-            (*index)++;
-            ten_pow *= 10;
-        }
+            struct Node* name = get_id(tokens, index);
 
-        value += double_part;
+            if(!TOKEN_INT(BRACK, OCB))
+            {
+                printf("Syntax error in pos.%d. Expected (\n", *index);
+                return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_P, name);
+            }
+            (*index)++;
+
+            struct Node* arg = get_e(tokens, index);
+
+            if(!TOKEN_INT(BRACK, CCB))
+            {
+                printf("Syntax error in pos.%d. Expected )\n", *index);
+                return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_P, name);
+            }
+            (*index)++;
+
+            name->left = arg;
+            return name;
+        }
+        else
+            return get_id(tokens, index);
     }
 
-    if(!is_neg)
-        return create_node(NUMBER, value);
-    else
-        return create_node(NUMBER, -value);
+
+    return get_n(tokens, index);
 }
 
-static struct Node* get_id(char* expr, int* index)
+static struct Node* get_n(struct token* tokens, int* index)
 {
-    if(!((expr[*index] >= 'a' && expr[*index] <= 'z') || (expr[*index] >= 'A' && expr[*index] <= 'Z') || expr[*index] == '_'))
+    if(tokens[*index].type != NUMB)
     {
-        printf("Syntax error in pos.%d. Symbol is %c but expected number\n", *index, expr[*index]);
+        printf("Syntax error in pos.%d. Expected number.\n", *index);
+        return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_N);
+    }
+
+    (*index)++;
+    return create_node(NUMB, tokens[(*index)-1].value.double_val);
+}
+
+static struct Node* get_id(struct token* tokens, int* index)
+{
+    if(tokens[*index].type!= VARIABLE && tokens[*index].type != FUN && tokens[*index].type != KEYWORD)
+    {
+        printf("Syntax error in pos.%d. Expected FUN/VAR/KEYWORD\n", *index);
         return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_ID);
     }
 
-    char var[MAX_VAR_LENGTH] = "";
-    for(int i = 0; i < 20; i++)
-    {
-        if(!((expr[*index] >= 'a' && expr[*index] <= 'z') || (expr[*index] >= 'A' && expr[*index] <= 'Z') || expr[*index] == '_'))
-            break;
+    (*index)++;
 
-        var[i] = expr[*index];
+    return create_node(tokens[(*index)-1].type, tokens[(*index)-1].value.int_val);
+}
+
+static struct Node* get_a(struct token* tokens, int* index)
+{
+    bool is_var = false;
+
+    if(TOKEN_INT(KEYWORD, VAR))
+    {
+        is_var = true;
         (*index)++;
     }
 
-    return create_node(VAR, VAR);///////////////////////////
-}
-
-static struct Node* get_a(char* expr, int* index)
-{
-    return create_node(17, 17);
-}
-
-static struct Node* get_if(char* expr, int* index)
-{
-    //уже проверено, что будет if
-    //(*index) += 2;
-    if(expr[*index] != '(')
+    int var_num = 0;
+    if(tokens[*index].type == VARIABLE)
     {
-        printf("Syntax error in pos.%d. Symbol is %c but expected (", *index, expr[*index]);
+        var_num = tokens[*index].value.int_val;
+        (*index)++;
+    }
+    else
+    {
+        printf("Syntax error in pos.%d. Expected variable\n", *index);
+        return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_A);
+    }
+
+    if(TOKEN_INT(OP, ASS))
+        (*index)++;
+    else
+    {
+        printf("Syntax error in pos.%d. Expected =\n", *index);
+        return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_A);
+    }
+
+    double val = 0;
+    if(tokens[*index].type == NUMB)
+    {
+        val = tokens[*index].value.double_val;
+        (*index)++;
+    }
+    else
+    {
+        printf("Syntax error in pos.%d. Expected variable\n", *index);
+        return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_A);
+    }
+
+    struct Node* var_node = create_node(NUMB, var_num);
+    struct Node* val_node = create_node(NUMB, val);
+
+    if(is_var)
+        return create_node(OP, VAR, var_node, val_node);
+    else
+        return create_node(OP, ASS, var_node, val_node);
+}
+
+static struct Node* get_if(struct token* tokens, int* index)
+{
+
+    if(!TOKEN_INT(BRACK, OCB))
+    {
+        printf("Syntax error in pos.%d. Expected (", *index);
         return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_IF);
     }
     (*index)++;
 
-    struct Node* L = get_l(expr, index);
+    struct Node* L = get_l(tokens, index);
 
-    if(expr[*index] != ')')
+    if(!TOKEN_INT(BRACK, CCB))
     {
-        printf("Syntax error in pos.%d. Symbol is %c but expected )", *index, expr[*index]);
-        return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_IF);
+        printf("Syntax error in pos.%d. Expected )", *index);
+        return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_IF, L);
     }
     (*index)++;
 
-    struct Node* comp = get_comp(expr, index);
+    struct Node* comp = get_comp(tokens, index);
 
     return create_node(IF, IF, L, comp);
 }
 
-static struct Node* get_op(char* expr, int* index)
+static struct Node* get_op(struct token* tokens, int* index)
 {
     /*if(expr[*index] == 'i' && expr[*(index+1)] == 'f')
         get_if(expr, index);*/
-    if(is_this_word(expr, index, "if"))
-        return get_if(expr, index);
+    struct Node* op = nullptr;
+    if(TOKEN_INT(LOGIC, IF))
+        op = get_if(tokens, index);
 
-   /* if(expr[*index] == 'f' && expr[*(index+1)] == 'u' && expr[*(index+2)] == 'n' && expr[*(index+3)] == 'c')
-        get_func(expr, index);*/
-    if(is_this_word(expr, index, "decl func_"))
-        return get_func(expr, index);
+    if(op == nullptr && TOKEN_INT(KEYWORD, DEC))
+        op = get_func(tokens, index);
 
-    if(expr[*index] == '[')
-        return get_comp(expr, index);
+    if(op == nullptr && TOKEN_INT(BRACK, OSB))
+        op =  get_comp(tokens, index);
 
-    return get_a(expr, index);
+    if(op == nullptr)
+        op = get_a(tokens, index);
+
+    if(!TOKEN_INT(KEYWORD, END))
+    {
+        printf("Syntax error in pos.%d. Expected $\n", *index);
+        return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_OP, op);
+    }
+
+    (*index)++;
+    return op;
 }
 
-static struct Node* get_comp(char* expr, int* index)
+static struct Node* get_comp(struct token* tokens, int* index)
 {
-    if(expr[*index] != '[')
+    if(!TOKEN_INT(BRACK, OSB))
     {
-        printf("Syntax error in pos.%d. Symbol is %c but expected [", *index, expr[*index]);
+        printf("Syntax error in pos.%d. Expected [", *index);
         return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_COMP);
     }
     (*index)++;
 
-    struct Node* answer = get_op(expr, index);
+    struct Node* answer = get_op(tokens, index);
     struct Node* cur_node = answer;
 
-    while(is_this_word(expr, index, "and"))
+    while(TOKEN_INT(OP, AND))
     {
-        cur_node = create_node(AND, AND, answer);
+        (*index)++;
+        cur_node = create_node(OP, AND, answer);
         answer = cur_node;
-        answer->right = get_op(expr, index);
+        answer->right = get_op(tokens, index);
     }
 
-    if(expr[*index] != ']')
+    if(!TOKEN_INT(BRACK, CSB))
     {
-        printf("Syntax error in pos.%d. Symbol is %c but expected ]", *index, expr[*index]);
+        printf("Syntax error in pos.%d. Expected ]\n", *index);
         return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_COMP);
     }
     (*index)++;
@@ -290,64 +362,118 @@ static struct Node* get_comp(char* expr, int* index)
     return answer;
 }
 
-static struct Node* get_func(char* expr, int* index)
+static struct Node* get_func(struct token* tokens, int* index)
 {
-    struct Node* name = get_id(expr, index);
-    struct Node* args = create_node(ARGS, ARGS);
-   // struct Node* exp = ;
-    struct Node* info = create_node(INFO, INFO, args);
-    return create_node(DEC, DEC, name, info);
-}
-
-static struct Node* get_main(char* expr, int* index)
-{
-    /*if(is_this_word(expr, index, "main()"))
-        return create_node(MAIN, MAIN, nullptr, answer);
-
-    printf("Syntax error in pos.%d. Expected main()", *index);*/
-    return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_MAIN);
-}
-
-static struct Node* get_scanf(char* expr, int* index)
-{
-    if(expr[*index] != '(')
+    if(TOKEN_INT(KEYWORD, DEC))
     {
-        printf("Syntax error in pos.%d. Symbol is %c but expected (", *index, expr[*index]);
+        return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_FUNC);
+
+    }
+
+    if(TOKEN_INT(FUN, SCANF))
+        return get_scanf(tokens, index);
+
+    if(TOKEN_INT(FUN, PRINTF))
+        return get_printf(tokens, index);
+
+    printf("Syntax error in pos.%d. Expected func\n", *index);
+    return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_FUNC);
+}
+
+static struct Node* get_main(struct token* tokens, int* index)
+{
+    if(TOKEN_INT(KEYWORD, MAI))
+        (*index)++;
+    else
+    {
+        printf("Error in %d. Expected main().\n", *index);
+        return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_MAIN);
+    }
+
+    if(TOKEN_INT(BRACK, OFB))
+        (*index)++;
+    else
+    {
+        printf("Error in %d. Expected {.\n", *index);
+        return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_MAIN);
+    }
+
+    struct Node* op = nullptr;
+    do
+    {
+        op = get_op(tokens, index);
+        struct Node* old_op = op;
+        op = create_node(OP, AND, old_op);
+    }while(TOKEN_INT(KEYWORD, END));
+
+    op->type = KEYWORD;
+    op->value = MAI;
+
+    if(TOKEN_INT(BRACK, CFB))
+        (*index)++;
+    else
+    {
+        printf("Error in %d. Expected }.\n", *index);
+        return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_MAIN, op);
+    }
+
+    return op;
+}
+
+static struct Node* get_scanf(struct token* tokens, int* index)
+{
+    if(!TOKEN_INT(FUN, SCANF))
+    {
+        printf("Syntax error in pos.%d. Expected scanf", *index);
         return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_SCANF);
     }
     (*index)++;
 
-    struct Node* id = get_id(expr, index);
-
-    if(expr[*index] != ')')
+    if(!TOKEN_INT(BRACK, OCB))
     {
-        printf("Syntax error in pos.%d. Symbol is %c but expected )", *index, expr[*index]);
+        printf("Syntax error in pos.%d. Expected (", *index);
         return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_SCANF);
     }
     (*index)++;
 
-    return create_node(SCANF, SCANF, id);
+    struct Node* id = get_id(tokens, index);
+
+    if(!TOKEN_INT(BRACK, CCB))
+    {
+        printf("Syntax error in pos.%d. Expected )", *index);
+        return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_SCANF);
+    }
+    (*index)++;
+
+    return create_node(FUN, SCANF, id);
 }
 
-static struct Node* get_printf(char* expr, int* index)
+static struct Node* get_printf(struct token* tokens, int* index)
 {
-    if(expr[*index] != '(')
+    if(!TOKEN_INT(FUN, PRINTF))
     {
-        printf("Syntax error in pos.%d. Symbol is %c but expected (", *index, expr[*index]);
+        printf("Syntax error in pos.%d. Expected printf", *index);
         return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_PRINTF);
     }
     (*index)++;
 
-    struct Node* id = get_id(expr, index);
-
-    if(expr[*index] != ')')
+    if(!TOKEN_INT(BRACK, OCB))
     {
-        printf("Syntax error in pos.%d. Symbol is %c but expected )", *index, expr[*index]);
+        printf("Syntax error in pos.%d. Expected (", *index);
         return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_PRINTF);
     }
     (*index)++;
 
-    return create_node(PRINTF, PRINTF, id);
+    struct Node* id = get_id(tokens, index);
+
+    if(!TOKEN_INT(BRACK, CCB))
+    {
+        printf("Syntax error in pos.%d. Expected )", *index);
+        return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_PRINTF);
+    }
+    (*index)++;
+
+    return create_node(FUN, PRINTF, id);
 }
 
 bool is_this_word(char* expr, int* index, const char* word)

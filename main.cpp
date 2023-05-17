@@ -7,6 +7,7 @@
 int main()
 {
     struct Node* n1 = nullptr;
+    int error = 0;
     FILE* source_file = fopen("file.sav", "r");
 
     if(source_file == nullptr)
@@ -19,28 +20,53 @@ int main()
     char* source_str = text_reader(source_file, "file.sav");
 
     char** var_table = (char**)calloc(1, sizeof(char) * MAX_VAR_LENGTH * MAX_NUM_OF_VARS);
+    struct token* tokens = (struct token*)calloc(MAX_NUM_OF_TOKENS, sizeof(struct token));
+
+    {
+
     if(var_table == nullptr)
     {
         printf("error in calloc var_table\n");
-        free(source_str);
-        return 1;
+        error = 1;
+        goto exit;
     }
 
-    struct token* tokens = (struct token*)calloc(1000, sizeof(struct token));
-    tokenizator(tokens, source_str, var_table);
+    if(!tokenizator(tokens, source_str, var_table))
+    {
+        printf("Error in tokeniaztor\n");
+        error = 2;
+        goto exit;
+    }
 
-    for(int i = 0; i < 15; i++)
-        printf("tokens[%d].type = %d\t.value = %d\n", i, tokens[i].type, tokens[i].value);
+    for(int i = 0; i < MAX_NUM_OF_TOKENS; i++)
+        if(tokens[i].type != 0 || tokens[i].value.int_val != 0)
+        {
+            if(tokens[i].type != NUMB)
+                printf("tokens[%d].type = %d\t.value = %d\n", i, tokens[i].type, tokens[i].value.int_val);
+            else
+                printf("tokens[%d].type = %d\t.value = %.3lf\n", i, tokens[i].type, tokens[i].value.double_val);
+        }
+
 
     /*if(read_expession_rec_descent(source_file, &n1) == 0)
     {
         tree_print(n1);
     }*/
+    error = convert_tokens_to_ast(tokens, &n1);
+    if(error != 0)
+    {
+        printf("Error in convert_tokens_to_ast. Code %d.\n", error);
+        goto exit;
+    }
 
+    }
+
+    exit:
+        tree_print(n1);
     free(var_table);
     free(source_str);
     free(tokens);
     delete_tree(n1);
 
-    return 0;
+    return error;
 }

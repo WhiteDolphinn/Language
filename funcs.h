@@ -24,7 +24,6 @@ DEFLOGIC(ELS, 17, "else")
 DEFLOGIC(WHI, 18, "while")
 DEFLOGIC(FOR, 19, "for")
 
-
 DEFKEYWORD(RET, 25, "return")
 DEFKEYWORD(VAR, 26, "var")
 DEFKEYWORD(MAI, 27, "main()")
