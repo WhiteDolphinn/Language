@@ -1,5 +1,9 @@
 main()
 {
     var x = 2$
+    var y = 3$
+    var z = 2.3$
     printf(x)$
+    scanf(y)$
+    printf(z)$
 }$

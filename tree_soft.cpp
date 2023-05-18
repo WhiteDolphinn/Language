@@ -5,6 +5,7 @@
 #include <math.h>
 #include "log.h"
 #include "dotter.h"
+#include "lexer.h"
 
 #define POISON 3472394
 
@@ -74,14 +75,61 @@ static void node_print(struct Node* node)
     node_print(node->left);
     node_print(node->right);
 
-    if(node->type == NUMBER)
+   /* if(node->type == NUMB)
         graph_add_dot(node, node->value, node->type, node->left, node->right, "#FFD0D0");
-    else if(node->type == VAR)
+    else if(node->type == VARIABLE)
         graph_add_dot(node, node->value, node->type, node->left, node->right, "#D0D0FF");
     else if(is_op_or_func_or_logic_or_keyword(node->type))
         graph_add_dot(node, node->value, node->type, node->left, node->right, "#D0FFD0");
     else
-        graph_add_dot(node, node->value, node->type, node->left, node->right, "#FF0000");
+        graph_add_dot(node, node->value, node->type, node->left, node->right, "#FF0000");*/
+
+    switch(node->type)
+    {
+        case OP:
+            graph_add_dot(node, node->value, node->type, node->left, node->right, "#D0FFD0");
+        break;
+
+        case FUN:
+            graph_add_dot(node, node->value, node->type, node->left, node->right, "#5c3c92");
+        break;
+
+        case LOGIC:
+            graph_add_dot(node, node->value, node->type, node->left, node->right, "#077b8a");
+        break;
+
+        case KEYWORD:
+            graph_add_dot(node, node->value, node->type, node->left, node->right, "#d72631");
+        break;
+
+        case BRACK:
+            graph_add_dot(node, node->value, node->type, node->left, node->right, "#a2d5c6");
+        break;
+
+        case ARGS:
+            graph_add_dot(node, node->value, node->type, node->left, node->right, "#ecc19c");
+        break;
+
+        case INFO:
+            graph_add_dot(node, node->value, node->type, node->left, node->right, "#1e847f");
+        break;
+
+        case VARIABLE:
+            graph_add_dot(node, node->value, node->type, node->left, node->right, "#D0D0FF");
+        break;
+
+        case NUMB:
+            graph_add_dot(node, node->value, node->type, node->left, node->right, "#FFD0D0");
+        break;
+
+        case FUNC:
+            graph_add_dot(node, node->value, node->type, node->left, node->right, "#316879");
+        break;
+
+        default:
+            graph_add_dot(node, node->value, node->type, node->left, node->right, "#FF0000");
+        break;
+    }
 
     if(node->left != nullptr)
         graph_add_arrow(node, node->left, "#0000FF");

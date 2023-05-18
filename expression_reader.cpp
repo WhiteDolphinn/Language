@@ -248,7 +248,7 @@ static struct Node* get_a(struct token* tokens, int* index)
     }
     else
     {
-        printf("Syntax error in pos.%d. Expected variable\n", *index);
+        printf("Syntax error in pos.%d. Func: get_a Expected variable\n", *index);
         return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_A);
     }
 
@@ -256,7 +256,7 @@ static struct Node* get_a(struct token* tokens, int* index)
         (*index)++;
     else
     {
-        printf("Syntax error in pos.%d. Expected =\n", *index);
+        printf("Syntax error in pos.%d. Func: get_aa Expected =\n", *index);
         return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_A);
     }
 
@@ -272,11 +272,16 @@ static struct Node* get_a(struct token* tokens, int* index)
         return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_A);
     }
 
-    struct Node* var_node = create_node(NUMB, var_num);
+    struct Node* var_node = create_node(VARIABLE, var_num);
     struct Node* val_node = create_node(NUMB, val);
 
     if(is_var)
-        return create_node(OP, VAR, var_node, val_node);
+    {
+
+        struct Node* answer =  create_node(KEYWORD, VAR, var_node, val_node);
+        //tree_print(answer);
+        return answer;
+    }
     else
         return create_node(OP, ASS, var_node, val_node);
 }
@@ -313,7 +318,7 @@ static struct Node* get_op(struct token* tokens, int* index)
     if(TOKEN_INT(LOGIC, IF))
         op = get_if(tokens, index);
 
-    if(op == nullptr && TOKEN_INT(KEYWORD, DEC))
+    if(op == nullptr && (TOKEN_INT(KEYWORD, DEC) || TOKEN_INT(FUN, PRINTF) || TOKEN_INT(FUN, SCANF)))
         op = get_func(tokens, index);
 
     if(op == nullptr && TOKEN_INT(BRACK, OSB))
@@ -324,7 +329,7 @@ static struct Node* get_op(struct token* tokens, int* index)
 
     if(!TOKEN_INT(KEYWORD, END))
     {
-        printf("Syntax error in pos.%d. Expected $\n", *index);
+        printf("Syntax error in pos.%d. Func:get_op Expected $\n", *index);
         return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_OP, op);
     }
 
@@ -399,12 +404,20 @@ static struct Node* get_main(struct token* tokens, int* index)
     }
 
     struct Node* op = nullptr;
-    do
+    op = create_node(KEYWORD, MAI);
+    op->left = get_op(tokens, index);
+
+    while(!TOKEN_INT(BRACK, CFB))
     {
-        op = get_op(tokens, index);
-        struct Node* old_op = op;
-        op = create_node(OP, AND, old_op);
-    }while(TOKEN_INT(KEYWORD, END));
+        static struct Node* current_op = op->left;
+        struct Node* copy_cur_op = copy_node(current_op);
+        delete_tree_without_root(current_op);
+        current_op->left = copy_cur_op;
+        current_op->type = OP;
+        current_op->value = AND;
+
+        current_op->right = get_op(tokens, index);
+    }
 
     op->type = KEYWORD;
     op->value = MAI;
@@ -431,16 +444,23 @@ static struct Node* get_scanf(struct token* tokens, int* index)
 
     if(!TOKEN_INT(BRACK, OCB))
     {
-        printf("Syntax error in pos.%d. Expected (", *index);
+        printf("Syntax error in pos.%d. Expected (\n", *index);
         return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_SCANF);
     }
     (*index)++;
 
-    struct Node* id = get_id(tokens, index);
+    //struct Node* id = get_id(tokens, index);
+    if(tokens[*index].type != VARIABLE)
+    {
+        printf("Syntax error in pos.%d. Expected var/val\n", *index);
+        return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_SCANF);
+    }
+    struct Node* id = create_node(tokens[*index].type, tokens[*index].value.int_val);
+    (*index)++;
 
     if(!TOKEN_INT(BRACK, CCB))
     {
-        printf("Syntax error in pos.%d. Expected )", *index);
+        printf("Syntax error in pos.%d. Expected )\n", *index);
         return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_SCANF);
     }
     (*index)++;
@@ -464,7 +484,14 @@ static struct Node* get_printf(struct token* tokens, int* index)
     }
     (*index)++;
 
-    struct Node* id = get_id(tokens, index);
+    //struct Node* id = get_id(tokens, index);
+    if(tokens[*index].type != VARIABLE)
+    {
+        printf("Syntax error in pos.%d. Expected var/val\n", *index);
+        return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_PRINTF);
+    }
+    struct Node* id = create_node(tokens[*index].type, tokens[*index].value.int_val);
+    (*index)++;
 
     if(!TOKEN_INT(BRACK, CCB))
     {
