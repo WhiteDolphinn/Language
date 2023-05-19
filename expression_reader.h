@@ -5,9 +5,6 @@
 #include <assert.h>
 #include "tree_soft.h"
 
-#define MAX_VAR_LENGTH 20
-#define MAX_NUM_OF_VARS 5
-
 //int read_expession_rec_descent(FILE* source_file, Node** root);
 int convert_tokens_to_ast(struct token* tokens, Node** root);
 

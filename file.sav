@@ -2,8 +2,22 @@ main()
 {
     var x = 2$
     var y = 3$
+    scanf(y)$
     var z = 2.3$
     printf(x)$
-    scanf(y)$
+
+    if(z)
+    [
+    printf(z)$ and printf(y)$
+    ]$
+
+    decl func_one(x, y, z)
+    {
+        printf(y)$
+        printf(z)$
+        return x$
+    }$
+
+    z = func_one(2)$
     printf(z)$
 }$

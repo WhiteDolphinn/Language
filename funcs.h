@@ -9,6 +9,7 @@ DEFOP(MOE, 21, ">=")
 DEFOP(EQU, 22, "==")
 DEFOP(NEQ, 23, "!=")
 DEFOP(AND, 24, "and")
+DEFOP(COM, 35, ",")
 
 DEFFUNC(NUMBER, 7, "number")
 DEFFUNC(SIN, 8, "sin")

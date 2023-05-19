@@ -3,6 +3,11 @@
 
 #define MAX_NUM_OF_TOKENS 1024
 
+#define MAX_VAR_LENGTH 20
+#define MAX_NUM_OF_VARS 5
+#define MAX_FUNC_LENGTH 50
+#define MAX_NUM_OF_FUNCS 5
+
 union type_val{
     int int_val;
     double double_val;
@@ -26,6 +31,6 @@ enum token_types{
     FUNC = 10,
 };
 
-bool tokenizator(struct token* tokens, char* source_str, char** var_table);
+bool tokenizator(struct token* tokens, char* source_str, char** var_table, char** func_table);
 
 #endif

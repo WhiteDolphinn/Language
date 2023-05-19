@@ -20,6 +20,7 @@ int main()
     char* source_str = text_reader(source_file, "file.sav");
 
     char** var_table = (char**)calloc(1, sizeof(char) * MAX_VAR_LENGTH * MAX_NUM_OF_VARS);
+    char** func_table = (char**)calloc(1, sizeof(char) * MAX_FUNC_LENGTH * MAX_NUM_OF_FUNCS);
     struct token* tokens = (struct token*)calloc(MAX_NUM_OF_TOKENS, sizeof(struct token));
 
     {
@@ -30,8 +31,14 @@ int main()
         error = 1;
         goto exit;
     }
+    if(func_table == nullptr)
+    {
+        printf("error in calloc func_table\n");
+        error = 3;
+        goto exit;
+    }
 
-    if(!tokenizator(tokens, source_str, var_table))
+    if(!tokenizator(tokens, source_str, var_table, func_table))
     {
         printf("Error in tokeniaztor\n");
         error = 2;
@@ -64,6 +71,7 @@ int main()
     exit:
         tree_print(n1);
     free(var_table);
+    free(func_table);
     free(source_str);
     free(tokens);
     delete_tree(n1);
