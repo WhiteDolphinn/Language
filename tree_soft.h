@@ -4,13 +4,13 @@
 #include <stdio.h>
 
 #define NODE(TYPE, VALUE)                           \
-(cur_node->type = TYPE && (int)cur_node->value == VALUE)  \
+(cur_node->type == TYPE && (int)cur_node->value == VALUE)  \
 
 #define NODE_LEFT(TYPE, VALUE)                                  \
-(cur_node->left->type = TYPE && (int)cur_node->left->value == VALUE)    \
+(cur_node->left->type == TYPE && (int)cur_node->left->value == VALUE)    \
 
 #define NODE_RIGHT(TYPE, VALUE)                                 \
-(cur_node->right->type = TYPE && (int)cur_node->right->value == VALUE)  \
+(cur_node->right->type == TYPE && (int)cur_node->right->value == VALUE)  \
 
 struct Node{
     struct Node* left;

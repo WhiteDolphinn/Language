@@ -17,6 +17,8 @@ enum backend_errors
     ERROR_UNKNOWN_TYPE = 6,
     ERROR_REDEFINATION_VAR = 7,
     ERROR_REDEFINATION_FUNC = 8,
+    ERROR_IN_ASS = 9,
+    ERROR_IN_SCANF = 10,
 };
 
 #endif

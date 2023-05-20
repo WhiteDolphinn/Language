@@ -28,7 +28,6 @@ enum token_types{
     INFO = 7,
     VARIABLE = 8,
     NUMB = 9,
-    FUNC = 10,
 };
 
 bool tokenizator(struct token* tokens, char* source_str, char** var_table, char** func_table);

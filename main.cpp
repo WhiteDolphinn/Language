@@ -77,12 +77,12 @@ int main()
 
 
 
-   /* error = emit_tree(n1, assembler_file);
+    error = emit_prog(n1, assembler_file);
     if(error != 0)
     {
-        printf("Error in emit_tree. Code %d.\n", error);
+        printf("Error in emit_prog. Code %d.\n", error);
         goto exit;
-    }*/
+    }
 
     }
 

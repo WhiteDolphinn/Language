@@ -122,9 +122,9 @@ static void node_print(struct Node* node)
             graph_add_dot(node, node->value, node->type, node->left, node->right, "#FFD0D0");
         break;
 
-        case FUNC:
+/*        case FUNC:
             graph_add_dot(node, node->value, node->type, node->left, node->right, "#316879");
-        break;
+        break;*/
 
         default:
             graph_add_dot(node, node->value, node->type, node->left, node->right, "#FF0000");
