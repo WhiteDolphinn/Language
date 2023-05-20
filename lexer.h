@@ -4,7 +4,7 @@
 #define MAX_NUM_OF_TOKENS 1024
 
 #define MAX_VAR_LENGTH 20
-#define MAX_NUM_OF_VARS 5
+#define MAX_NUM_OF_VARS 15
 #define MAX_FUNC_LENGTH 50
 #define MAX_NUM_OF_FUNCS 5
 

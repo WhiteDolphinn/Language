@@ -127,7 +127,7 @@ static struct Node* get_e(struct token* tokens, int* index)
     struct Node* answer = get_t(tokens, index);
     struct Node* cur_node = answer;
 
-    while(TOKEN_INT(OP, ADD) || TOKEN_INT(OP, SUB))
+    while(TOKEN_INT(OP, ADDF) || TOKEN_INT(OP, SUBF))
     {
         int op = tokens[*index].value.int_val;
         (*index)++;
@@ -143,7 +143,7 @@ static struct Node* get_t(struct token* tokens, int* index)
     struct Node* answer = get_p(tokens, index);
     struct Node* cur_node = answer;
 
-    while(TOKEN_INT(OP, MUL) || TOKEN_INT(OP, DIV))
+    while(TOKEN_INT(OP, MULF) || TOKEN_INT(OP, DIVF))
     {
         int op = tokens[*index].value.int_val;
         (*index)++;
@@ -342,10 +342,14 @@ static struct Node* get_a(struct token* tokens, int* index)
                 while(TOKEN_INT(OP, COM))
                 {
                     (*index)++;
-                    struct Node* cur_node = copy_node(func->left);
+                    struct Node* copy_cur_node = copy_node(func->left);
+                    delete_tree_without_root(func->left);
+                    //func->left = create_node(OP, COM, copy_cur_node);
+                    func->left->left = copy_cur_node;
+
                     func->left->type = OP;
                     func->left->value = COM;
-                    func->left->left = cur_node;
+
                     if(tokens[*index].type == NUMB)
                         func->left->right = create_node(tokens[*index].type, tokens[*index].value.double_val);
                     else
@@ -466,7 +470,8 @@ static struct Node* get_func(struct token* tokens, int* index)
     if(TOKEN_INT(KEYWORD, DEC))
     {
         (*index)++;
-        struct Node* func = create_node(FUN, tokens[*index].value.int_val);
+        struct Node* func = create_node(KEYWORD, DEC);
+        func->left = create_node(FUN, tokens[*index].value.int_val);
         (*index)++;
 
         if(!TOKEN_INT(BRACK, OCB))
@@ -478,18 +483,18 @@ static struct Node* get_func(struct token* tokens, int* index)
 
         if(tokens[*index].type == NUMB || tokens[*index].type == VARIABLE)
         {
-            func->left = create_node(tokens[*index].type, tokens[*index].value.int_val);
+            func->left->left = create_node(tokens[*index].type, tokens[*index].value.int_val);
             (*index)++;
 
             while(TOKEN_INT(OP, COM))
             {
                 (*index)++;
-                struct Node* args = copy_node(func->left);
-                delete_tree(func->left);
+                struct Node* args = copy_node(func->left->left);
+                delete_tree(func->left->left);
 
                 struct Node* new_arg = create_node(tokens[*index].type, tokens[*index].value.int_val);
                 (*index)++;
-                func->left = create_node(OP, COM, args, new_arg);
+                func->left->left = create_node(OP, COM, args, new_arg);
                 //func->left->type = OP;
             }
         }
@@ -516,7 +521,10 @@ static struct Node* get_func(struct token* tokens, int* index)
         if(func->right != nullptr)
             delete_tree_without_root(func->right);
         else
-            func->right = create_node(OP, AND);
+        {
+            func->right = get_op(tokens, index);
+            continue;
+        }
 
         func->right->left = copy_cur_op;
         func->right->type = OP;
@@ -527,15 +535,11 @@ static struct Node* get_func(struct token* tokens, int* index)
 
             //tree_print(func->right);
 
-            if(!TOKEN_INT(KEYWORD, RET))
+            if(!TOKEN_INT(KEYWORD, RETURN))
                 func->right->right = get_op(tokens, index);
             else
             {
-                //func->right = push_node(KEYWORD, RET);
-
-                /*func->right->right->type = KEYWORD;
-                func->right->right->value = RET;*/
-                func->right->right = create_node(KEYWORD, RET);
+                func->right->right = create_node(KEYWORD, RETURN);
                 (*index)++;
                 func->right->right->left = get_e(tokens, index);
                 if(TOKEN_INT(KEYWORD, END))

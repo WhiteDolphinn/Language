@@ -2,6 +2,7 @@
 #include "expression_reader.h"
 #include "lexer.h"
 #include "text.h"
+#include "backend.h"
 #include <stdlib.h>
 
 int main()
@@ -9,10 +10,18 @@ int main()
     struct Node* n1 = nullptr;
     int error = 0;
     FILE* source_file = fopen("file.sav", "r");
+    FILE* assembler_file = fopen("./CPU/Assembler/proga.asm", "w");
 
     if(source_file == nullptr)
     {
         printf("I can't open source_file\n");
+        return 0;
+    }
+
+    if(assembler_file == nullptr)
+    {
+        printf("I can't open assembler_file\n");
+        fclose(source_file);
         return 0;
     }
 
@@ -66,10 +75,21 @@ int main()
         goto exit;
     }
 
+
+
+   /* error = emit_tree(n1, assembler_file);
+    if(error != 0)
+    {
+        printf("Error in emit_tree. Code %d.\n", error);
+        goto exit;
+    }*/
+
     }
 
     exit:
-        tree_print(n1);
+    tree_print(n1);
+    fclose(source_file);
+    fclose(assembler_file);
     free(var_table);
     free(func_table);
     free(source_str);

@@ -143,7 +143,7 @@ void tree_print_inorder(FILE* file, struct Node* tree)
     if(tree == nullptr)
         return;
 
-    if(tree->type == NUMBER || tree->type == VAR || tree->type == ADD || tree->type == SUB || tree->type == MUL || tree->type == DIV || tree->type == POW)
+    if(tree->type == NUMBER || tree->type == VAR || tree->type == ADDF || tree->type == SUBF || tree->type == MULF || tree->type == DIVF || tree->type == POWF)
     {
         fprintf(file, "{ ");
         tree_print_inorder(file, tree->left);
@@ -156,11 +156,11 @@ void tree_print_inorder(FILE* file, struct Node* tree)
         {
             switch((int)tree->value)
             {
-                case ADD:   fprintf(file, "+ "); break;
-                case SUB:   fprintf(file, "- "); break;
-                case MUL:   fprintf(file, "\\cdot "); break;
-                case DIV:   fprintf(file, "/ "); break;
-                case POW:   fprintf(file, "^ "); break;
+                case ADDF:   fprintf(file, "+ "); break;
+                case SUBF:   fprintf(file, "- "); break;
+                case MULF:   fprintf(file, "\\cdot "); break;
+                case DIVF:   fprintf(file, "/ "); break;
+                case POWF:   fprintf(file, "^ "); break;
                 default:  fprintf(file, "bebra\n"); break;
             }
         }
@@ -214,47 +214,47 @@ void optimizate_tree(struct Node* node)
             return;
         }
 
-        if((node->type == ADD || node->type == SUB) && equal_double(node->right->value, 0))
+        if((node->type == ADDF || node->type == SUBF) && equal_double(node->right->value, 0))
         {
             delete_tree(node->right);
             merge_nodes(node, node->left);
             return;
         }
 
-        if(node->type == ADD && equal_double(node->left->value, 0))
+        if(node->type == ADDF && equal_double(node->left->value, 0))
         {
             delete_tree(node->left);
             merge_nodes(node, node->right);
             return;
         }
 
-        if(node->type == MUL && (equal_double(node->left->value, 0) || equal_double(node->right->value, 0)))
+        if(node->type == MULF && (equal_double(node->left->value, 0) || equal_double(node->right->value, 0)))
         {
             delete_tree_without_root(node);
             push_node(node, NUMBER, 0);
             return;
         }
 
-        if((node->type == MUL || node->type == DIV || node->type == POW) && equal_double(node->right->value, 1))
+        if((node->type == MULF || node->type == DIVF || node->type == POWF) && equal_double(node->right->value, 1))
         {
             delete_tree(node->right);
             merge_nodes(node, node->left);
             return;
         }
 
-        if(node->type == MUL && equal_double(node->left->value, 1))
+        if(node->type == MULF && equal_double(node->left->value, 1))
         {
             delete_tree(node->left);
             merge_nodes(node, node->right);
             return;
         }
-        if(node->type == POW && equal_double(node->right->value, 0))
+        if(node->type == POWF && equal_double(node->right->value, 0))
         {
             delete_tree_without_root(node);
             push_node(node, NUMBER, 1);
             return;
         }
-        if(node->type == POW && equal_double(node->right->value, 1))
+        if(node->type == POWF && equal_double(node->right->value, 1))
         {
             delete_tree(node->right);
             merge_nodes(node, node->left);
@@ -263,12 +263,12 @@ void optimizate_tree(struct Node* node)
     }
     else
     {
-        if(node->type == LN && node->left->type == POW)
+        if(node->type == LN && node->left->type == POWF)
         {
             struct Node* stepen = copy_node(node->left->right);
             struct Node* osnov = copy_node(node->left->left);
             delete_tree_without_root(node);
-            push_node(node, MUL, MUL);
+            push_node(node, MULF, MULF);
 
             node->left = create_node(257, 257);
             node->right = create_node(LN, LN);
@@ -304,7 +304,7 @@ bool is_number_tree(struct Node* node)
 
         case VAR: return false;
 
-        case ADD: case SUB: case MUL: case DIV: case POW:
+        case ADDF: case SUBF: case MULF: case DIVF: case POWF:
             return is_number_tree(node->left) && is_number_tree(node->right);
 
         case LN: case SIN: case COS: case TAN: case COT:
@@ -368,13 +368,13 @@ double eval(struct Node* node)
 
     switch(node->type)
     {
-        case ADD:
+        case ADDF:
             return eval(node->left) + eval(node->right);
-        case SUB:
+        case SUBF:
             return eval(node->left) - eval(node->right);
-        case MUL:
+        case MULF:
             return eval(node->left) * eval(node->right);
-        case DIV:
+        case DIVF:
         {
             double right_val = eval(node->right);
             if(equal_double(right_val, 0))
@@ -384,7 +384,7 @@ double eval(struct Node* node)
             }
             return eval(node->left) / eval(node->right);
         }
-        case POW:
+        case POWF:
             return pow(eval(node->left), eval(node->right));
         case LN:
         {

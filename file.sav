@@ -11,13 +11,13 @@ main()
     printf(z)$ and printf(y)$
     ]$
 
-    decl func_one(x, y, z)
+    decl func_one(x_x, y_y, z_z)
     {
-        printf(y)$
-        printf(z)$
-        return x$
+        printf(y_y)$
+        printf(z_z)$
+        return x_x$
     }$
 
-    z = func_one(2)$
+    z = func_one(2, 3, 5)$
     printf(z)$
 }$
