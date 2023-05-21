@@ -10,17 +10,24 @@ int emit_prog(struct Node* root, FILE* assembler_file)
         return ERROR_NULL_ROOT;
 
     struct Node* cur_node = root;
+    int error = 0;
     //printf("%d %lf\n", cur_node->type, cur_node->value);
 
     if(!NODE(KEYWORD, MAI))
         return ERROR_MAIN;
 
-    printf("%d %lf\n", cur_node->left->type, cur_node->left->value);
+    //printf("%d %lf\n", cur_node->left->type, cur_node->left->value);
 
     if(NODE_LEFT(OP, AND))
-        return emit_tree(cur_node->left, assembler_file);
+    {
+        error = emit_tree(cur_node->left, assembler_file);
+        fprintf(assembler_file, "hlt\n");
+        return error;
+    }
 
-    return emit_node(cur_node->left, assembler_file);
+    error = emit_node(cur_node->left, assembler_file);
+    fprintf(assembler_file, "hlt\n");
+    return error;
 }
 
 int emit_tree(struct Node* root, FILE* assembler_file)
@@ -34,18 +41,19 @@ int emit_tree(struct Node* root, FILE* assembler_file)
 
     struct Node* cur_node = root;
 
-    if(cur_node->left == nullptr)
+    /*if(cur_node->left == nullptr)
         return ERROR_NULL_LEFT_NODE_PTR;
 
     if(cur_node->right == nullptr)
-        return ERROR_NULL_RIGHT_NODE_PTR;
+        return ERROR_NULL_RIGHT_NODE_PTR;*/
 
-    if(NODE(OP, AND))
+    if(NODE(OP, AND) || NODE(OP, COM))
+    {
         error = emit_tree(cur_node->left, assembler_file);
-    else if(cur_node->left->type != VARIABLE && cur_node->left->type != NUMB)
-        error = emit_node(cur_node->left, assembler_file);
+        error = emit_node(cur_node->right, assembler_file);
+    }
 
-    error = emit_node(cur_node->right, assembler_file);
+    error = emit_node(cur_node, assembler_file);
     return error;
 }
 
@@ -83,6 +91,7 @@ int emit_node(struct Node* root, FILE* assembler_file)
                     break;*/
 
                     error = emit_node(root->right, assembler_file);
+                    printf("var: %d\t val: %lf\n", (int)root->left->value, root->right->value);
                     fprintf(assembler_file, "pop [%d]\n", (int)root->left->value);
                     break;
                 }
@@ -91,12 +100,19 @@ int emit_node(struct Node* root, FILE* assembler_file)
                     if(is_declared_funcs[(int)root->left->value])
                         return ERROR_REDEFINATION_FUNC;
 
-                    while(NODE_LEFT(OP, COM))
+                    fprintf(assembler_file, ":func_%d\n", (int)root->left->value);
+                    cur_node = root->left->left;
+
+                    while(NODE(OP, COM))
                     {
                         if(cur_node->right->type == VARIABLE)
                             fprintf(assembler_file, "pop [%d]\n", (int)cur_node->right->value);
+                        else
+                            return ERROR_IN_ARGS_IN_FUN;
 
+                        cur_node = cur_node->left;
                     }
+                    fprintf(assembler_file, "pop [%d]\n", (int)cur_node->value);
 
                     cur_node = root;
 
@@ -112,8 +128,6 @@ int emit_node(struct Node* root, FILE* assembler_file)
 
                     is_declared_funcs[(int)root->left->value] = true;
 
-                    fprintf(assembler_file, ":func_%d\n", (int)root->left->value);
-
                     error = emit_tree(root->right->left, assembler_file);
 
                     /*if(root->right->right->right->value == NUMB)
@@ -128,6 +142,39 @@ int emit_node(struct Node* root, FILE* assembler_file)
                 default: break;
                 break;
             }
+            break;
+        }
+
+        case LOGIC:
+        {
+            //case IF:
+            static int num_of_if = 0;
+            cur_node = root;
+            fprintf(assembler_file, ":if_%d\n", num_of_if);
+
+            if(root->left->type == VARIABLE)
+            {
+                fprintf(assembler_file, "push 0\npush [%d]\njne :end_if_%d\n", (int)root->left->value, num_of_if);
+                error = emit_tree(root->right, assembler_file);
+                fprintf(assembler_file, ":end_if_%d\n", num_of_if);
+            }
+
+            if(NODE_LEFT(OP, MOR) || NODE_LEFT(OP, MOE) || NODE_LEFT(OP, EQU) || NODE_LEFT(OP, NEQ))
+            {
+                error = emit_node(root->left->left, assembler_file);
+                error = emit_node(root->left->right, assembler_file);
+
+                switch((int)root->left->value)
+                {
+                    case MOR:   fprintf(assembler_file, "ja :end_of_if_%d\n", num_of_if);   break;
+                    case MOE:   fprintf(assembler_file, "jae :end_of_if_%d\n", num_of_if);  break;
+                    case EQU:   fprintf(assembler_file, "je :end_of_if_%d\n", num_of_if);   break;
+                    case NEQ:   fprintf(assembler_file, "jne :end_of_if_%d\n", num_of_if);  break;
+                    default:    fprintf(assembler_file, "jmp :end_of_if_%d\n", num_of_if);   break;
+                }
+            }
+
+            num_of_if++;
             break;
         }
 
@@ -261,14 +308,15 @@ int emit_node(struct Node* root, FILE* assembler_file)
                 default:
                 {
                     cur_node = root->left;
-                    while(NODE_LEFT(OP, COM))
+                    if(NODE(OP, COM))
                     {
+                        error = emit_tree(cur_node->left, assembler_file);
                         error = emit_node(cur_node->right, assembler_file);
-                        cur_node = cur_node->left;
                     }
-                    error = emit_node(cur_node->left, assembler_file);
 
                     fprintf(assembler_file, "call :func_%d\n", (int)root->value);
+
+                    cur_node = root;
                     break;
                 }
             }

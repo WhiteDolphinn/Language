@@ -186,7 +186,23 @@ static struct Node* get_p(struct token* tokens, int* index)
             }
             (*index)++;
 
+            if(TOKEN_INT(BRACK, CCB))
+                return name;
+
             struct Node* arg = get_e(tokens, index);
+            //printf("zhopa kozla\n");
+
+            while(TOKEN_INT(OP, COM))
+            {
+               // printf("zhopa kozla\n");
+                (*index)++;
+                struct Node* copy_arg = copy_node(arg);
+                delete_tree_without_root(arg);
+                arg->type = OP;
+                arg->value = COM;
+                arg->left = copy_arg;
+                arg->right = get_e(tokens, index);
+            }
 
             if(!TOKEN_INT(BRACK, CCB))
             {
@@ -320,6 +336,7 @@ static struct Node* get_a(struct token* tokens, int* index)
         {
             //(*index)++;
             struct Node* func = create_node(FUN, tokens[*index].value.int_val);
+            //printf("index = %d\n", *index);
             (*index)++;
 
             if(TOKEN_INT(BRACK, OCB))
@@ -350,11 +367,9 @@ static struct Node* get_a(struct token* tokens, int* index)
                     func->left->type = OP;
                     func->left->value = COM;
 
-                    if(tokens[*index].type == NUMB)
-                        func->left->right = create_node(tokens[*index].type, tokens[*index].value.double_val);
-                    else
-                        func->left->right = create_node(tokens[*index].type, tokens[*index].value.int_val);
-                    (*index)++;
+                    printf("index = %d\n", *index);
+                    func->left->right = get_e(tokens, index);
+                    //(*index)++;
                 }
             }
 
@@ -362,7 +377,7 @@ static struct Node* get_a(struct token* tokens, int* index)
                 (*index)++;
             else
             {
-                printf("Syntax error in pos.%d. Func: get_a Expected )\n", *index);
+                printf("Syntax error in pos.%d. Func: get_a  Expected )\n", *index);
                 return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_A);
             }
 
@@ -405,7 +420,7 @@ static struct Node* get_if(struct token* tokens, int* index)
 
     struct Node* comp = get_comp(tokens, index);
 
-    return create_node(IF, IF, L, comp);
+    return create_node(LOGIC, IF, L, comp);
 }
 
 static struct Node* get_op(struct token* tokens, int* index)

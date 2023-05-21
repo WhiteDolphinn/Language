@@ -19,6 +19,7 @@ enum backend_errors
     ERROR_REDEFINATION_FUNC = 8,
     ERROR_IN_ASS = 9,
     ERROR_IN_SCANF = 10,
+    ERROR_IN_ARGS_IN_FUN = 11,
 };
 
 #endif
