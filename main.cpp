@@ -11,7 +11,7 @@ int main()
     int error = 0;
 
     //system ("ls");
-    FILE* source_file = fopen( "file.sav", "w");
+    FILE* source_file = fopen( "file1.sav", "r");
     assert(source_file);
 
     FILE* assembler_file = fopen("./CPU/Assembler/proga.asm", "w");
@@ -29,7 +29,7 @@ int main()
     }
 
     //char* source_str = (char*)calloc(2048, sizeof(char));
-    char* source_str = text_reader(source_file, "file.sav");
+    char* source_str = text_reader(source_file, "file1.sav");
 
     char** var_table = (char**)calloc(1, sizeof(char) * MAX_VAR_LENGTH * MAX_NUM_OF_VARS);
     char** func_table = (char**)calloc(1, sizeof(char) * MAX_FUNC_LENGTH * MAX_NUM_OF_FUNCS);

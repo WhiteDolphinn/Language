@@ -124,13 +124,17 @@ static struct Node* get_l(struct token* tokens, int* index)
 
 static struct Node* get_e(struct token* tokens, int* index)
 {
+    printf("index = %d\n", *index);
     struct Node* answer = get_t(tokens, index);
     struct Node* cur_node = answer;
 
+
     while(TOKEN_INT(OP, ADDF) || TOKEN_INT(OP, SUBF))
     {
+
         int op = tokens[*index].value.int_val;
         (*index)++;
+        printf("indexx = %d\n", *index);
         cur_node = create_node(OP, op, answer);
         answer = cur_node;
         answer->right = get_t(tokens, index);
@@ -258,6 +262,7 @@ static struct Node* get_a(struct token* tokens, int* index)
     }
 
     int var_num = 0;
+    printf("ind = %d\n", *index);
     if(tokens[*index].type == VARIABLE)
     {
         var_num = tokens[*index].value.int_val;
@@ -311,7 +316,7 @@ static struct Node* get_a(struct token* tokens, int* index)
 
     struct Node* var_node = create_node(VARIABLE, var_num);
 
-    switch(tokens[*index].type)
+    /*switch(tokens[*index].type)
     {
         case NUMB:
         {
@@ -385,7 +390,13 @@ static struct Node* get_a(struct token* tokens, int* index)
         }
 
         default: break;
-    }
+    }*/
+
+    if(is_var == true)
+        return create_node(KEYWORD, VAR, var_node, get_e(tokens, index));
+    else
+        return create_node(OP, ASS, var_node, get_e(tokens, index));
+
 
     printf("Syntax error in pos.%d. Func: get_a Expected variable|func or number\n", *index);
     return create_node(SYNTAX_ERROR, SYNTAX_ERROR_IN_GET_A);

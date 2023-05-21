@@ -1,0 +1,28 @@
+main()
+{
+    var x = 3$
+    var y = 0$
+
+    decl func_fuct(xx)
+    {
+        var yy = 1$
+        var zz = 0$
+
+        if(xx == 1)
+        [
+            yy = 1$
+        ]$
+
+        if(xx > 1)
+        [
+            yy = xx * func_fuct(xx - 1)$
+        ]$
+
+        return (yy)$
+    }$
+
+    y = func_fuct(x)$
+    printf(y)$
+}$
+
+

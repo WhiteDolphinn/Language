@@ -5,6 +5,7 @@
 static bool is_empty_string(const char* str);
 static bool is_link_string(const char* str);
 static bool check_regist_command(const char* str, int* code_buffer, int* code_reg);
+static bool check_ram_command_with_regist(const char* str, int* code_buffer, int* arg_reg);
 static bool check_ram_command(const char* str, int* code_buffer, int* arg_reg);
 static int reg_cmd(const char* buf_reg);
 static void get_func_code(struct link* func, char links[][NUM_OF_LINKS], int* link_positions);
@@ -69,6 +70,13 @@ bool convertor(
         if(code_buffer == PUSH || code_buffer == POP)
         {
             if(check_ram_command(strings[i].position, &code_buffer, &arg_reg))
+            {
+                EMIT(code_buffer);
+                EMIT(arg_reg);
+                fprintf(file_txt, "\n");
+                continue;
+            }
+            if(check_ram_command_with_regist(strings[i].position, &code_buffer, &arg_reg))
             {
                 EMIT(code_buffer);
                 EMIT(arg_reg);
@@ -213,7 +221,6 @@ static bool check_ram_command(const char* str, int* code_buffer, int* arg_reg)
     char buf_first_symbol = 0;
     int buf_number = 0;
     char buf_third_symbol = 0;
-    //char buf_reg[MAX_STR_LENGTH] = {};
 
     if(sscanf(str, "%s %c %d %c", buf_cmd, &buf_first_symbol, &buf_number, &buf_third_symbol) == 4)
     {
@@ -222,9 +229,44 @@ static bool check_ram_command(const char* str, int* code_buffer, int* arg_reg)
         //printf("buf_third_symbol = %c", buf_third_symbol);
 
         if(buf_first_symbol != '[' || buf_third_symbol != ']')
+        {
             return false;
+        }
 
-        *arg_reg = buf_number;
+            *arg_reg = buf_number;
+
+        switch(*code_buffer)
+        {
+            case PUSH:
+            *code_buffer = PUSH_RAM;
+            return true;
+
+            case POP:
+            *code_buffer = POP_RAM;
+            return true;
+
+            default: return false;
+        }
+    }
+    return false;
+}
+
+static bool check_ram_command_with_regist(const char* str, int* code_buffer, int* arg_reg)
+{
+    char buf_cmd[MAX_STR_LENGTH] = {};
+    char buf_reg[MAX_STR_LENGTH] = {};
+
+    if(sscanf(str, "%s [%s]", buf_cmd, buf_reg) == 2)
+    {
+        //printf("buf_reg = <%s>\n", buf_reg);
+        buf_reg[2] = '\0';
+
+        #define GETREG(REG, NUM)        \
+            if(!stricmp(buf_reg, #REG)) \
+                *arg_reg = -NUM;        \
+
+        #include "get_regist.h"
+        #undef GETREG
 
         switch(*code_buffer)
         {

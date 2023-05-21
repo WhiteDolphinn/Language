@@ -62,8 +62,11 @@ void execute_cmds(struct cpu* cpu)
 
             case PUSH_RAM:
             {
-                sleep(1);
-                stack_push(&cpu->stk, cpu->RAM[cpu->commands[++cmd_pos]]);
+                //sleep(1);
+                if(cpu->commands[cmd_pos+1] >= 0)
+                    stack_push(&cpu->stk, cpu->RAM[cpu->commands[++cmd_pos]]);
+                else
+                    stack_push(&cpu->stk, cpu->RAM[(cpu->registers[-(cpu->commands[++cmd_pos])])/100]);
                 break;
             }
 
@@ -83,8 +86,22 @@ void execute_cmds(struct cpu* cpu)
 
             case POP_RAM:
             {
-                sleep(1);
-                cpu->RAM[cpu->commands[++cmd_pos]] = stack_pop(&cpu->stk);
+                //sleep(1);
+                //printf("%d\n", (cpu->registers[-(cpu->commands[cmd_pos + 1])])/100);
+                if(cpu->commands[cmd_pos+1] >= 0)
+                {
+                    cpu->RAM[cpu->commands[++cmd_pos]] = stack_pop(&cpu->stk);
+                    break;
+                }
+
+                if(cpu->commands[cmd_pos+1] == -1)  //bx  /* if(cpu->registers[-(cpu->commands[++cmd_pos])] != POISON)*/
+                {
+                    cmd_pos++;
+                    cpu->RAM[(cpu->registers[1])/100] = stack_pop(&cpu->stk);
+                }
+                /*else
+                    printf("%d\n", cpu->registers[-(cpu->commands[++cmd_pos])]);*/
+
                 break;
             }
 
