@@ -19,6 +19,7 @@ DEFFUNC(COT, 11, "cot")
 DEFFUNC(LN, 12, "log")
 DEFFUNC(SCANF, 13, "scanf")
 DEFFUNC(PRINTF, 14, "printf")
+DEFFUNC(SQR, 16, "sqrt")
 
 DEFLOGIC(IF, 15, "if")
 DEFLOGIC(ELS, 17, "else")

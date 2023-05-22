@@ -1,0 +1,98 @@
+main()
+{
+    var a = 0$
+    scanf(a)$
+    var b = 0$
+    scanf(b)$
+    var c = 0$
+    scanf(c)$
+
+    var x_one = 9$
+    var x_two = 228$
+
+    var num_r = 0$
+
+    decl func_disc(aa, bb, cc)
+    {
+        var dd = 0$
+        dd = bb * bb - 4 * aa * cc$
+        return (dd)$
+    }$
+
+    var d = 0$
+    d = func_disc(a, b, c)$
+
+    if(a == 0)
+    [
+        d = (0 - 1)$
+        and
+        if(b != 0)
+        [
+            x_one = ((0 - 1) * c / b)$
+            and
+            num_r = 1$
+        ]$
+    ]$
+
+    if(c == 0)
+    [
+        d = (0 - 1)$
+        and
+        x_one = 0$
+        and
+        num_r = 1$
+        and
+        if(a != 0)
+        [
+            x_two = ((0 - 1) * b / a)$
+            and
+            nur_r = 2$
+        ]$
+        and
+        if(a == 0)
+        [
+            if(b == 0)
+            [
+                num_r = (0 - 1)$
+            ]$
+        ]$
+    ]$
+
+    if(d > 0)
+    [
+        d = sqrt(d)$
+        and
+        x_one = (((0 - 1) * b + d)/(2 * a))$
+        and
+        x_two = (((0 - 1) * b - d)/(2 * a))$
+        and
+        num_r = 2$
+    ]$
+
+    if(d == 0)
+    [
+        x_one = (((0 - 1) * b)/(2 * a))$
+        and
+        num_r = 1$
+    ]$
+
+    if(num_r == 1)
+    [
+        printf(x_one)$
+    ]$
+
+
+    if(num_r == 2)
+    [
+        printf(x_one)$
+        and
+        printf(x_two)$
+    ]$
+
+    if(num_r == (0 - 1))
+    [
+        x_one = 888$
+        and
+        printf(x_one)$
+    ]$
+}$

@@ -5,13 +5,23 @@
 #include "backend.h"
 #include <stdlib.h>
 
-int main()
+static void help();
+
+int main(int argc, const char* argv[])
 {
+    if(argc != 2)
+    {
+        help();
+        return 0;
+    }
+
+    const char* name_of_source_file = argv[1];
+
     struct Node* n1 = nullptr;
     int error = 0;
 
     //system ("ls");
-    FILE* source_file = fopen( "file1.sav", "r");
+    FILE* source_file = fopen(name_of_source_file, "r");
     assert(source_file);
 
     FILE* assembler_file = fopen("./CPU/Assembler/proga.asm", "w");
@@ -29,7 +39,7 @@ int main()
     }
 
     //char* source_str = (char*)calloc(2048, sizeof(char));
-    char* source_str = text_reader(source_file, "file1.sav");
+    char* source_str = text_reader(source_file, name_of_source_file);
 
     char** var_table = (char**)calloc(1, sizeof(char) * MAX_VAR_LENGTH * MAX_NUM_OF_VARS);
     char** func_table = (char**)calloc(1, sizeof(char) * MAX_FUNC_LENGTH * MAX_NUM_OF_FUNCS);
@@ -100,4 +110,10 @@ int main()
     delete_tree(n1);
 
     return error;
+}
+
+
+static void help()
+{
+    printf("./a.out\t<name of .sav file>\n");
 }

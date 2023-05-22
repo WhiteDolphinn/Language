@@ -6,7 +6,7 @@
 #define MAX_VAR_LENGTH 20
 #define MAX_NUM_OF_VARS 15
 #define MAX_FUNC_LENGTH 50
-#define MAX_NUM_OF_FUNCS 5
+#define MAX_NUM_OF_FUNCS 15 //not more than MAX_NUM_OF_VARS
 
 union type_val{
     int int_val;

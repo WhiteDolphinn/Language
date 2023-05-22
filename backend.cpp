@@ -161,17 +161,18 @@ int emit_node(struct Node* root, FILE* assembler_file)
         {
             //case IF:
             static int num_of_if = 0;
+            int cur_if = num_of_if;
             cur_node = root;
-            fprintf(assembler_file, ":if_%d\r\n", num_of_if);
+            fprintf(assembler_file, ":if_%d\r\n", num_of_if++);
 
             if(root->left->type == VARIABLE)
             {
-                fprintf(assembler_file, "push 0\r\npush [%d]\r\njne :end_if_%d\r\n", (int)root->left->value, num_of_if);
+                fprintf(assembler_file, "push 0\r\npush [%d]\r\njne :end_if_%d\r\n", (int)root->left->value, cur_if);
             }
 
             if(root->left->type == NUMB)
             {
-                fprintf(assembler_file, "push 0\r\npush %d\r\njne :end_if_%d\r\n", (int)root->left->value, num_of_if);
+                fprintf(assembler_file, "push 0\r\npush %d\r\njne :end_if_%d\r\n", (int)root->left->value, cur_if);
             }
 
             if(NODE_LEFT(OP, MOR) || NODE_LEFT(OP, MOE) || NODE_LEFT(OP, EQU) || NODE_LEFT(OP, NEQ))
@@ -181,17 +182,17 @@ int emit_node(struct Node* root, FILE* assembler_file)
 
                 switch((int)root->left->value)
                 {
-                    case MOR:   fprintf(assembler_file, "ja :end_if_%d\r\n", num_of_if);   break;
-                    case MOE:   fprintf(assembler_file, "jae :end_if_%d\r\n", num_of_if);  break;
-                    case EQU:   fprintf(assembler_file, "jne :end_if_%d\r\n", num_of_if);   break;
-                    case NEQ:   fprintf(assembler_file, "je :end_if_%d\r\n", num_of_if);  break;
-                    default:    fprintf(assembler_file, "jmp :end_if_%d\r\n", num_of_if);   break;
+                    case MOR:   fprintf(assembler_file, "ja :end_if_%d\r\n", cur_if);   break;
+                    case MOE:   fprintf(assembler_file, "jae :end_if_%d\r\n", cur_if);  break;
+                    case EQU:   fprintf(assembler_file, "jne :end_if_%d\r\n", cur_if);   break;
+                    case NEQ:   fprintf(assembler_file, "je :end_if_%d\r\n", cur_if);  break;
+                    default:    fprintf(assembler_file, "jmp :end_if_%d\r\n", cur_if);   break;
                 }
             }
                 error = emit_tree(root->right, assembler_file);
-                fprintf(assembler_file, ":end_if_%d\r\n", num_of_if);
+                fprintf(assembler_file, ":end_if_%d\r\n", cur_if);
 
-            num_of_if++;
+            //num_of_if++;
             break;
         }
 
@@ -300,6 +301,15 @@ int emit_node(struct Node* root, FILE* assembler_file)
                     fprintf(assembler_file, "push %d\r\n", log(root->left->value));
                     break;
                 }*/
+
+                case SQR:
+                {
+                    if(root->left->type == VARIABLE)
+                        fprintf(assembler_file, "push [%d]\r\nsqrt\r\n", (int)root->left->value);
+                    else
+                        fprintf(assembler_file, "push %lf\r\nsqrt\r\n", root->left->value);
+                    break;
+                }
 
                 case SCANF:
                 {
