@@ -1,7 +1,9 @@
 push 35
 pop bx
 
-push 3.000000
+push 0.000000
+pop [0]
+in
 pop [0]
 push 0.000000
 pop [1]
@@ -13,6 +15,7 @@ push bx
 push 1
 add
 pop bx
+pop [2]
 push 1.000000
 pop [3]
 push 0.000000

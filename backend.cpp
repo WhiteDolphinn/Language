@@ -121,7 +121,7 @@ int emit_node(struct Node* root, FILE* assembler_file)
 
                             cur_node = cur_node->left;
                         }
-                        if(cur_node !=  root->left->left)
+                        if(cur_node->type == VARIABLE)
                             fprintf(assembler_file, "pop [%d]\r\n", (int)cur_node->value);
 
                         cur_node = root;
@@ -306,7 +306,7 @@ int emit_node(struct Node* root, FILE* assembler_file)
                     if(root->left->type != VARIABLE)
                         return ERROR_IN_SCANF;
 
-                    fprintf(assembler_file, "in\r\npop[%d]\r\n", (int)root->left->value);
+                    fprintf(assembler_file, "in\r\npop [%d]\r\n", (int)root->left->value);
                     break;
                 }
                 case PRINTF:

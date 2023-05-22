@@ -1,6 +1,7 @@
 main()
 {
-    var x = 3$
+    var x = 0$
+    scanf(x)$
     var y = 0$
 
     decl func_fuct(xx)
